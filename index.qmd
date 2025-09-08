@@ -18,7 +18,7 @@ Advanced spatial analysis and data science for urban planning and public policy.
 [- Ye and Bachelor in Urban Planning from USC
 - yezhang1@upenn.edu
 - yezhanggg
-- I think it is a requirement lol]
+- I think it is a requirement.]
 
 ## Contact
 - Email: [yezhang1@upenn.edu]
