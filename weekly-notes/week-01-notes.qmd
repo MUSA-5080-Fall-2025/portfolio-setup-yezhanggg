@@ -4,20 +4,34 @@ date: "2025-09-08"
 ---
 
 ## Key Concepts Learned
-- [List main concepts from lecture]
-- [Technical skills covered]
+- [What is Git, Github, Quarto, and full term for YAML.]
+- [Some basic R coding language and went over an example on CAR data.]
 
 ## Coding Techniques
-- [New R functions or approaches]
-- [Quarto features learned]
+- [ **Bold text**
+    *Italic text*
+    ***Bold and italic***
+    `code text`
+    ~~Strikethrough~~
+    select() - choose columns
+    filter() - choose rows
+    mutate() - create new variables
+    summarize() - calculate statistics
+    group_by() - operate on groups]
+- [ ---
+    title: "My Analysis" 
+    author: "Your Name"
+    date: today
+    format: html
+    ---]
 
 ## Questions & Challenges
-- [What I didn't fully understand]
-- [Areas needing more practice]
+- [I think it is hard to understand all the R code and notations.]
+- [This is my first time interact with R and Github. So I need to try everything first and I will find more challenges.]
 
 ## Connections to Policy
-- [How this week's content applies to real policy work]
+- [Both the analysis and the data itself can be biased. The reason is that data were collected by someone who might be biased.]
 
 ## Reflection
-- [What was most interesting]
-- [How I'll apply this knowledge]
+- [Quarto is really interesting. Looking forward to see more what Quarto can do.]
+- [Through our assignment.]
