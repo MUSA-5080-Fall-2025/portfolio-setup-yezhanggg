@@ -15,10 +15,10 @@ Advanced spatial analysis and data science for urban planning and public policy.
 - **Final Project:** Capstone modeling challenge
 
 ## About Me
-[  - Ye and Bachelor in Urban Planning from USC
-   - yezhang1@upenn.edu
-   - yezhanggg
-   - I think it is a requirement lol]
+[- Ye and Bachelor in Urban Planning from USC
+- yezhang1@upenn.edu
+- yezhanggg
+- I think it is a requirement lol]
 
 ## Contact
 - Email: [yezhang1@upenn.edu]
