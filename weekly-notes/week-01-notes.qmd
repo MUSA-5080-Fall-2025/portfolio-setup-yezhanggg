@@ -4,7 +4,7 @@ date: "2025-09-08"
 ---
 
 ## Key Concepts Learned
-- [What is Git, Github, Quarto, and full term for YAML. ]
+- [What is Git, Github, Quarto, and full term for YAML (YAML Ain't Markup Language). ]
 - [Some basic R coding language and went over an example on CAR data.]
 
 ## Coding Techniques
