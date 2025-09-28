@@ -1,0 +1,24 @@
+---
+title: "Week 2 Notes - Course Introduction"
+date: "2025-09-15"
+---
+
+## Key Concepts Learned
+- I learned about topics on algorithmic decision making and what is census data.
+- We also went through a scenarios practices where we designed the ethical algorithms.
+- The importance of having algorithmic decision making.
+- Census data is really large but it has a lot of potential to do some great things. 
+
+
+## Coding Techniques
+- Functions that I learned include “str_remove(), str_extract(), str_replace(), case_when(),
+
+## Questions & Challenges
+- I think it will take some time to fully understand how to best use the Census Tract. I think it will take a lot of trials and error. The more pract the better we will get at it. 
+
+## Connections to Policy
+- It is important to understand why we want to do algorthimic decision making in policy. 
+- Data analytics is a subjective process because it involves human decisions. So we need to know to be best clean the data and understand the data. 
+
+## Reflection
+- Looking forward to explore the census data more and to see what insightful result we could get. Also really looking forward to the data update in the end of this year. To see how status have changed for people.
