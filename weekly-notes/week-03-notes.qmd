@@ -1,35 +1,19 @@
 ---
-title: "Week 1 Notes - Course Introduction"
-date: "2025-09-08"
+title: "Week 3 Notes"
+date: "2025-09-22"
 ---
 
 ## Key Concepts Learned
-- What is Git, Github, Quarto, and full term for YAML (YAML Ain't Markup Language). 
-- Some basic R coding language and went over an example on CAR data.
+- We learn some ways to do visualizations and the asethetic mapping. What is a ggplot. We also learned how to join data.
 
 ## Coding Techniques
-- Bold text
-- Italic text
-- Bold and italic
-- `code text`
-- ~~Strikethrough~~
-- select() - choose columns
-- filter() - choose rows
-- mutate() - create new variables
-- summarize() - calculate statistics
-- group_by() - operate on groups]
--  title: "My Analysis" 
-    author: "Your Name"
-    date: today
-    format: html
+- In class, we learned the basics of ggplot2 and joins in dplyr. In ggplot2, aesthetic mappings like x, y, color, fill, size, shape, and alpha control visual elements such as position, color, and transparency. A typical plot follows the structure ggplot(data) + aes(x, y) + geom_something() + additional_layers(), and layers are added with +. We also covered data joins in dplyr: left_join() keeps all rows from the left dataset, right_join() keeps all from the right, inner_join() keeps only matching rows, and full_join() keeps all rows from both, with left_join() being the most common for adding columns to a main dataset.
 
 ## Questions & Challenges
-- I think it is hard to understand all the R code and notations.
-- This is my first time interact with R and Github. So I need to try everything first and I will find more challenges.
+- I think it is very important to follow all the steps correct to make everything work.
 
 ## Connections to Policy
-- Both the analysis and the data itself can be biased. The reason is that data were collected by someone who might be biased.
+- Learning ggplot2 and dplyr helps us turn data into clear visuals and summaries that make policy trends easier to understand. This makes it simpler to spot patterns and share insights that can guide better, data-informed decisions.
 
 ## Reflection
-- Quarto is really interesting. Looking forward to see more what Quarto can do.
-- Through our assignment. I think it will be a great practice for me. 
+- To become more proficient in this process, it requires a lot of time. Even following the class excercise could be challenging. More practice!
