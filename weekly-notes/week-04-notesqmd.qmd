@@ -1,0 +1,29 @@
+---
+title: "Week 4 Notes"
+date: "2025-09-29"
+---
+
+## Key Concepts Learned
+- We learned about spatial data in R. We talked about vector data model and different type of spatial data to use in R. We also talked about some spatial data operation of how to filter and select the data that we need. We also mentioned some corrdinate reference system and how each is created.
+
+## Coding Techniques
+- Below are some of the core techniques that we covered in class and used in class. 
+| `st_filter()` | Select features by spatial relationship | Find neighboring counties |
+| `st_buffer()` | Create zones around features | Hospital service areas |
+| `st_intersects()` | Test spatial overlap | Check access to services |
+| `st_disjoint()` | Test spatial separation | Find rural areas |
+| `st_join()` | Join by location | Add county info to tracts |
+| `st_union()` | Combine geometries | Merge overlapping buffers |
+| `st_intersection()` | Clip geometries | Calculate overlap areas |
+| `st_transform()` | Change CRS | Accurate distance/area calculations |
+| `st_area()` | Calculate areas | County sizes, coverage |
+| `st_distance()` | Calculate distances | Distance to facilities |
+
+## Questions & Challenges
+- I think it is very important to understand what kind of spatial relationship you want to explore. That determines what types of function you need to explore relationships. 'st_filter()' and 'st_intersection()' might seem confusing at first but they are serving differe kinds of operation. 
+
+## Connections to Policy
+- These operations are heavily related to Policy. Policy decision need spatial analysis to fully understand the root issues. 
+
+## Reflection
+- Being able to master the spatial analysis and GIS in R will unlock great potential in coming up with policy decision and more in-depth analysis for urban issues. 
