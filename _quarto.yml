@@ -1,6 +1,13 @@
 project:
   type: website
   output-dir: docs
+  render:
+    - index.qmd
+    - weekly-notes/week-01-notes.qmd
+    - weekly-notes/week-02-notes.qmd
+    - weekly-notes/week-03-notes.qmd
+    - weekly-notes/week-04-notes.qmd
+    - labs/assignment1.qmd
 
 website:
   title: "Ye Zhang - MUSA 5080 Portfolio"
