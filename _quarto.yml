@@ -7,7 +7,9 @@ project:
     - weekly-notes/week-02-notes.qmd
     - weekly-notes/week-03-notes.qmd
     - weekly-notes/week-04-notes.qmd
-    - labs/assignment1.qmd
+    - weekly-notes/week-05-notes.qmd
+    - labs/Zhang_Ye_Assignment2.qmd
+    - labs/Zhang_Ye_Assignment1.qmd
 
 website:
   title: "Ye Zhang - MUSA 5080 Portfolio"
@@ -25,10 +27,14 @@ website:
             text: Week 3
           - href: weekly-notes/week-04-notes.qmd
             text: Week 4
+          - href: weekly-notes/week-05-notes.qmd
+            text: Week 5
       - text: Assignment
         menu:
-          - href: labs/assignment1.qmd
+          - href: labs/Zhang_Ye_Assignment1.qmd
             text: Assignment 1
+          - href: labs/Zhang_Ye_Assignment2.qmd
+            text: Assignment 2
 
 format:
   html:
