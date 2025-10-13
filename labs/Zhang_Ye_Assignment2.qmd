@@ -2,8 +2,8 @@
 title: "Assignment 2: Spatial Analysis and Visualization"
 subtitle: "Healthcare Access and Equity in Pennsylvania"
 author: "Ye Zhang"
-date: Oct.14.2025
-format: 
+date: "2025-10-14"
+format:
   html:
     code-fold: false
     toc: true
@@ -14,6 +14,7 @@ execute:
   warning: false
   message: false
 ---
+
 
 ## Assignment Overview
 
