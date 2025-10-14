@@ -443,7 +443,7 @@ I choose schools, bike network and crime incidents to look school safety topics.
 - What is the data source and date?
 All of the data are downloaded from OpenDataPhilly. Crime incidents data is 2025 and bike network and schools don't have their date included. 
 - How many features does it contain?
-There are 495 features for schoos, 169017 features for crime incidents, and 5225 features for bike network. 
+There are 15 features for schoos, 14 features for crime incidents, and 9 features for bike network. 
 - What CRS is it in? Did you need to transform it?
 I transformed all of the data into EPSG:3365 for their CRS because it is an optimal option for Philadelphia. 
 ---
