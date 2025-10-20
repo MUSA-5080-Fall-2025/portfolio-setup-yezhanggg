@@ -44,6 +44,9 @@ library(scales)
 library(patchwork)
 library(here)
 
+options(tigris_use_cache = TRUE)
+options(tigris_progress = FALSE)
+
 census_api_key("138db656646183a18ae51e4a7c1e1f5cd64d4b40")
 install = TRUE
 
