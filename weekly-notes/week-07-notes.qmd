@@ -4,16 +4,31 @@ date: "2025-10-20"
 ---
 
 ##Key Concepts Learned
-We learned about spatial autocorrelation and Tobler's First Law of Geography - near things are more related than distant things. Moran's I is a diagnostic tool that detects spatial patterns in model errors, revealing if we're missing important spatial relationships. The key distinction is that spatial lag/error models are for inference about spillover effects, while spatial feature engineering is for prediction.
+
+- We learned about spatial autocorrelation and Tobler's First Law of Geography - near things are more related than distant things
+- Moran's I is a diagnostic tool that detects spatial patterns in model errors, revealing if we're missing important spatial relationships
+- The key distinction is that spatial lag/error models are for inference about spillover effects, while spatial feature engineering is for prediction
 
 ##Coding Techniques
-moran.mc(errors, weights, nsim = 999) tests for spatial autocorrelation in model residuals using Monte Carlo simulation. Adding progress = FALSE to get_acs(), get_decennial(), and tigris functions suppresses progress messages in rendered documents. The workflow is: fit model → extract errors → create spatial weights → test Moran's I → add spatial features if needed.
+
+- moran.mc(errors, weights, nsim = 999) tests for spatial autocorrelation in model residuals using Monte Carlo simulation
+- Adding progress = FALSE to get_acs(), get_decennial(), and tigris functions suppresses progress messages in rendered documents
+- The workflow is: fit model → extract errors → create spatial weights → test Moran's I → add spatial features if needed
 
 ##Questions & Challenges
-The biggest challenge is deciding what to do when Moran's I shows significant spatial autocorrelation - should we add more spatial features at different buffer distances or try neighborhood fixed effects? Another challenge is avoiding the "simultaneity problem" where using neighbor prices to predict prices creates circular logic and data leakage. Finding the right balance between capturing spatial relationships and avoiding overfitting requires both statistical testing and domain knowledge.
+
+- The biggest challenge is deciding what to do when Moran's I shows significant spatial autocorrelation - should we add more spatial features at different buffer distances or try neighborhood fixed effects?
+- Another challenge is avoiding the "simultaneity problem" where using neighbor prices to predict prices creates circular logic and data leakage
+- Finding the right balance between capturing spatial relationships and avoiding overfitting requires both statistical testing and domain knowledge
 
 ##Connections to Policy
-Spatially clustered model errors can reveal systematic bias in property assessments, leading to inequitable taxation in certain neighborhoods. Understanding spatial autocorrelation helps policymakers identify spillover effects like how crime or transit investments affect surrounding property values. This diagnostic approach ensures predictive models don't perpetuate existing geographic inequalities in housing markets.
+
+- Spatially clustered model errors can reveal systematic bias in property assessments, leading to inequitable taxation in certain neighborhoods
+- Understanding spatial autocorrelation helps policymakers identify spillover effects like how crime or transit investments affect surrounding property values
+- This diagnostic approach ensures predictive models don't perpetuate existing geographic inequalities in housing markets
 
 ##Reflection
-Moran's I is a diagnostic tool, not a solution - it tells us our model needs improvement but not exactly how to fix it. The iterative process of checking diagnostics, adding spatial features, and re-testing is essential rather than just relying on R-squared. Moving forward, I'll always map residuals and test for spatial patterns as part of my standard model evaluation workflow.
+
+- Moran's I is a diagnostic tool, not a solution - it tells us our model needs improvement but not exactly how to fix it
+- The iterative process of checking diagnostics, adding spatial features, and re-testing is essential rather than just relying on R-squared
+- Moving forward, I'll always map residuals and test for spatial patterns as part of my standard model evaluation workflow

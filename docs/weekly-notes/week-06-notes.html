@@ -192,11 +192,38 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>##ey Concepts Learned We learned how to expand regression models beyond simple continuous variables by incorporating categorical variables (like neighborhoods), interaction terms, and polynomial terms to capture complex relationships. The hedonic model framework was introduced, showing how housing prices are determined by structural features, spatial characteristics, and neighborhood effects bundled together. We explored Tobler’s First Law and spatial autocorrelation, understanding that nearby houses influence each other’s values, which requires us to add spatial features like buffer aggregations, k-nearest neighbors, and distance to amenities.</p>
-<p>##Coding Techniques st_as_sf(coords = c(“Longitude”, “Latitude”), crs = 4326) converts dataframe to spatial object, and st_transform(‘ESRI:102286’) projects to appropriate coordinate system for distance calculations. st_join(nhoods, join = st_intersects) performs spatial join to assign each house to its neighborhood polygon. add_count(name) followed by mutate(name_cv = if_else(n &lt; 10, “Small_Neighborhoods”, as.character(name))) groups sparse categories to prevent cross-validation errors. st_buffer(dist = 500) creates circular buffers around points for spatial aggregation, and st_nn(k = 3) finds k-nearest neighbors for spatial lag calculations. train(SalePrice ~ LivingArea + as.factor(name_cv), method = “lm”, trControl = trainControl(method = “cv”, number = 10)) runs 10-fold cross-validation with categorical fixed effects.</p>
-<p>##Questions &amp; Challenges The biggest challenge is handling sparse categories in cross-validation - when neighborhoods have fewer than 10 observations, random splits can put all instances in one fold, causing the model to fail on unseen categories. Creating meaningful spatial features requires domain knowledge about what distances matter (500ft vs 1 mile buffers for crime) and which amenities actually affect prices. Deciding between grouping small neighborhoods into “Other” versus dropping them entirely involves trade-offs between model stability and potentially excluding marginalized communities from analysis.</p>
-<p>##Connections to Policy Fixed effects models can reveal systematic price disparities across neighborhoods that aren’t explained by structural features alone, potentially indicating discrimination or historical disinvestment patterns. Understanding which spatial features (crime, transit access, parks) have the strongest effects on property values helps prioritize infrastructure investments and target interventions where they’ll have maximum impact. The sparse category problem highlights data equity issues - neighborhoods with few sales are often lower-income areas, and excluding them from analysis risks making policy recommendations that ignore communities most in need.</p>
-<p>##Reflection The progression from structural-only models (R² = 0.13) to models with spatial features and fixed effects (much lower RMSE) demonstrates how critical location is to housing values beyond just physical characteristics. I need to always check category counts before running cross-validation with categorical variables to avoid the “factor has new levels” error. The insight that fixed effects bundle many unmeasured factors (schools, prestige, amenities) explains why they often provide the biggest prediction improvement, even though they’re less interpretable than specific spatial features.</p>
+<p>Key Concepts Learned</p>
+<ul>
+<li>We learned how to expand regression models beyond simple continuous variables by incorporating categorical variables (like neighborhoods), interaction terms, and polynomial terms to capture complex relationships</li>
+<li>The hedonic model framework was introduced, showing how housing prices are determined by structural features, spatial characteristics, and neighborhood effects bundled together</li>
+<li>We explored Tobler’s First Law and spatial autocorrelation, understanding that nearby houses influence each other’s values, which requires us to add spatial features like buffer aggregations, k-nearest neighbors, and distance to amenities</li>
+</ul>
+<p>Coding Techniques</p>
+<ul>
+<li>st_as_sf(coords = c(“Longitude”, “Latitude”), crs = 4326) converts dataframe to spatial object, and st_transform(‘ESRI:102286’) projects to appropriate coordinate system for distance calculations</li>
+<li>st_join(nhoods, join = st_intersects) performs spatial join to assign each house to its neighborhood polygon</li>
+<li>add_count(name) followed by mutate(name_cv = if_else(n &lt; 10, “Small_Neighborhoods”, as.character(name))) groups sparse categories to prevent cross-validation errors</li>
+<li>st_buffer(dist = 500) creates circular buffers around points for spatial aggregation, and st_nn(k = 3) finds k-nearest neighbors for spatial lag calculations</li>
+<li>train(SalePrice ~ LivingArea + as.factor(name_cv), method = “lm”, trControl = trainControl(method = “cv”, number = 10)) runs 10-fold cross-validation with categorical fixed effects</li>
+</ul>
+<p>Questions &amp; Challenges</p>
+<ul>
+<li>The biggest challenge is handling sparse categories in cross-validation - when neighborhoods have fewer than 10 observations, random splits can put all instances in one fold, causing the model to fail on unseen categories</li>
+<li>Creating meaningful spatial features requires domain knowledge about what distances matter (500ft vs 1 mile buffers for crime) and which amenities actually affect prices</li>
+<li>Deciding between grouping small neighborhoods into “Other” versus dropping them entirely involves trade-offs between model stability and potentially excluding marginalized communities from analysis</li>
+</ul>
+<p>Connections to Policy</p>
+<ul>
+<li>Fixed effects models can reveal systematic price disparities across neighborhoods that aren’t explained by structural features alone, potentially indicating discrimination or historical disinvestment patterns</li>
+<li>Understanding which spatial features (crime, transit access, parks) have the strongest effects on property values helps prioritize infrastructure investments and target interventions where they’ll have maximum impact</li>
+<li>The sparse category problem highlights data equity issues - neighborhoods with few sales are often lower-income areas, and excluding them from analysis risks making policy recommendations that ignore communities most in need</li>
+</ul>
+<p>Reflection</p>
+<ul>
+<li>The progression from structural-only models (R² = 0.13) to models with spatial features and fixed effects (much lower RMSE) demonstrates how critical location is to housing values beyond just physical characteristics</li>
+<li>I need to always check category counts before running cross-validation with categorical variables to avoid the “factor has new levels” error</li>
+<li>The insight that fixed effects bundle many unmeasured factors (schools, prestige, amenities) explains why they often provide the biggest prediction improvement, even though they’re less interpretable than specific spatial features</li>
+</ul>
 
 
 
