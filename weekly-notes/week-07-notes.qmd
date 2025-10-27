@@ -1,24 +1,19 @@
 ---
-title: "Week 5 Notes"
-date: "2025-10-6"
+title: "Week 7 Notes"
+date: "2025-10-20"
 ---
 
-## Key Concepts Learned
-- We learned about linear regression and different estimator and their purposes. We talked about how to differentiate inference and prediction. We also built our first model to test statistical significance. We talked about the case of overfitting and how test what is considered as a good model. 
+##Key Concepts Learned
+We learned about spatial autocorrelation and Tobler's First Law of Geography - near things are more related than distant things. Moran's I is a diagnostic tool that detects spatial patterns in model errors, revealing if we're missing important spatial relationships. The key distinction is that spatial lag/error models are for inference about spillover effects, while spatial feature engineering is for prediction.
 
-## Coding Techniques
-- Below are some of the core techniques that we covered in class and used in class. 
-- lm(formula = attribute ~ attribute, data = pa_data) is how to built a model. 
-- summary of the model will provide all the important statistics. 
-- set.seed(123) is to set random number generator
-- sqrt(mean is to find RMSE
-- train_control <- trainControl(method = "cv", number = 10) sets up the cross-validation technique
+##Coding Techniques
+moran.mc(errors, weights, nsim = 999) tests for spatial autocorrelation in model residuals using Monte Carlo simulation. Adding progress = FALSE to get_acs(), get_decennial(), and tigris functions suppresses progress messages in rendered documents. The workflow is: fit model → extract errors → create spatial weights → test Moran's I → add spatial features if needed.
 
-## Questions & Challenges
-- I think the hard question is how to find the best predictor for you model while also taking the consideration of different linear model assumption and the biases that we want to avoid. The in-class activity of finding home value was quite challeneging by finding the best predictors that are significant. 
+##Questions & Challenges
+The biggest challenge is deciding what to do when Moran's I shows significant spatial autocorrelation - should we add more spatial features at different buffer distances or try neighborhood fixed effects? Another challenge is avoiding the "simultaneity problem" where using neighbor prices to predict prices creates circular logic and data leakage. Finding the right balance between capturing spatial relationships and avoiding overfitting requires both statistical testing and domain knowledge.
 
-## Connections to Policy
-- This is super useful when we trying to find the correlation or coenction between different inputs and results especially when we are designing public policy. 
+##Connections to Policy
+Spatially clustered model errors can reveal systematic bias in property assessments, leading to inequitable taxation in certain neighborhoods. Understanding spatial autocorrelation helps policymakers identify spillover effects like how crime or transit investments affect surrounding property values. This diagnostic approach ensures predictive models don't perpetuate existing geographic inequalities in housing markets.
 
-## Reflection
-- It is importan to remember the difference between inference and prediction. We need to carefully look at the model to prevent in-sample fit and overfitting. It is important to check assumption and plot things out to see. 
+##Reflection
+Moran's I is a diagnostic tool, not a solution - it tells us our model needs improvement but not exactly how to fix it. The iterative process of checking diagnostics, adding spatial features, and re-testing is essential rather than just relying on R-squared. Moving forward, I'll always map residuals and test for spatial patterns as part of my standard model evaluation workflow.

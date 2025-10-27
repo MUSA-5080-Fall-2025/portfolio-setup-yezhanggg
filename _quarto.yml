@@ -8,6 +8,8 @@ project:
     - weekly-notes/week-03-notes.qmd
     - weekly-notes/week-04-notes.qmd
     - weekly-notes/week-05-notes.qmd
+    - weekly-notes/week-06-notes.qmd
+    - weekly-notes/week-07-notes.qmd
     - labs/Zhang_Ye_Assignment2.qmd
     - labs/Zhang_Ye_Assignment1.qmd
     - labs/MUSA5080-Midterm/appendix/Zhang_Ye_Appendix.qmd
@@ -30,6 +32,10 @@ website:
             text: Week 4
           - href: weekly-notes/week-05-notes.qmd
             text: Week 5
+          - href: weekly-notes/week-06-notes.qmd
+            text: Week 6
+          - href: weekly-notes/week-07-notes.qmd
+            text: Week 7
       - text: Assignment
         menu:
           - href: labs/Zhang_Ye_Assignment1.qmd
