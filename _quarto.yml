@@ -10,6 +10,7 @@ project:
     - weekly-notes/week-05-notes.qmd
     - labs/Zhang_Ye_Assignment2.qmd
     - labs/Zhang_Ye_Assignment1.qmd
+    - labs/MUSA5080-Midterm/appendix/Zhang_Ye_Appendix.qmd
 
 website:
   title: "Ye Zhang - MUSA 5080 Portfolio"
@@ -35,6 +36,8 @@ website:
             text: Assignment 1
           - href: labs/Zhang_Ye_Assignment2.qmd
             text: Assignment 2
+          - href: labs/MUSA5080-Midterm/appendix/Zhang_Ye_Appendix.qmd
+            text: Midterm Appendix
 
 format:
   html:
