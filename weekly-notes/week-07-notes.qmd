@@ -1,0 +1,24 @@
+---
+title: "Week 5 Notes"
+date: "2025-10-6"
+---
+
+## Key Concepts Learned
+- We learned about linear regression and different estimator and their purposes. We talked about how to differentiate inference and prediction. We also built our first model to test statistical significance. We talked about the case of overfitting and how test what is considered as a good model. 
+
+## Coding Techniques
+- Below are some of the core techniques that we covered in class and used in class. 
+- lm(formula = attribute ~ attribute, data = pa_data) is how to built a model. 
+- summary of the model will provide all the important statistics. 
+- set.seed(123) is to set random number generator
+- sqrt(mean is to find RMSE
+- train_control <- trainControl(method = "cv", number = 10) sets up the cross-validation technique
+
+## Questions & Challenges
+- I think the hard question is how to find the best predictor for you model while also taking the consideration of different linear model assumption and the biases that we want to avoid. The in-class activity of finding home value was quite challeneging by finding the best predictors that are significant. 
+
+## Connections to Policy
+- This is super useful when we trying to find the correlation or coenction between different inputs and results especially when we are designing public policy. 
+
+## Reflection
+- It is importan to remember the difference between inference and prediction. We need to carefully look at the model to prevent in-sample fit and overfitting. It is important to check assumption and plot things out to see. 
