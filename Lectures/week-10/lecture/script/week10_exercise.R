@@ -18,6 +18,7 @@
 library(tidyverse)   # For data manipulation and visualization
 library(caret)       # For model training and confusion matrices
 library(pROC)        # For ROC curves and AUC
+library(here)
 
 # Set random seed for reproducibility
 set.seed(2025)
@@ -31,7 +32,7 @@ theme_set(theme_minimal())
 
 # Load Georgia Department of Corrections recidivism data
 # Source: National Institute of Justice Recidivism Challenge
-recidivism_data <- read_csv(here("data/NIJ_s_Recidivism_Challenge_Full_Dataset_20240407.csv"))
+recidivism_data <- read_csv(here("~/Documents/GitHub/portfolio-setup-yezhanggg/Lectures/week-10/lecture/data/NIJ_s_Recidivism_Challenge_Full_Dataset_20240407.csv"))
 # Examine data structure
 glimpse(recidivism_data)
 
