@@ -1,0 +1,33 @@
+---
+title: "Week 9 Notes"
+date: "2025-11-3"
+---
+
+##Key Concepts Learned
+
+- We learned about "dirty data" - data derived from or influenced by corrupt, biased, and unlawful practices including fabricated data, systematic bias, and missing data, not just traditional data quality issues
+- Predictive policing creates feedback loops where algorithms learn from biased historical policing patterns, then direct police to the same neighborhoods, generating more arrests that "confirm" the algorithm's predictions
+- The key distinction is that crime data doesn't reveal actual crime - it reveals policing patterns, because crime data is always socially constructed, selectively enforced, and organizationally filtered
+
+##Coding Techniques
+
+- Count-based crime models use Poisson regression initially, but we check for overdispersion using dispersion statistics and switch to Negative Binomial regression when variance exceeds the mean
+- Kernel Density Estimation (KDE) with density.ppp(sigma = 1000) creates a baseline prediction using only past crime locations, which we compare against feature-based models to assess whether complexity adds value
+- The validation workflow is: train on 2017 data → create risk predictions → test on 2018 hold-out data → calculate hit rates by risk quintile → compare model performance to KDE baseline
+
+##Questions & Challenges
+
+- The biggest challenge is the impossibility of "neutral" crime data - even if we exclude racially biased drug arrest data, aren't property crime and assault enforcement also biased? Where do we draw the line?
+- Another challenge is distinguishing between "cleaning" data (removing technical errors) versus addressing fundamental problems where the data itself reflects systemic injustice and cannot be "fixed"
+- Understanding when a statistically "good" model (that beats KDE and performs well on hold-out data) can still be socially harmful requires considering who benefits, who is harmed, and what feedback loops are created
+
+##Connections to Policy
+
+- Case studies from Baltimore, NYPD, and other departments revealed extensive stat manipulation including 14,000+ serious assaults misrecorded as minor offenses and officers planting evidence to meet arrest quotas
+- Predictive policing systems exclude white-collar crime, wage theft ($300B+ annually), and corporate fraud from predictions, focusing enforcement only on street crime despite its much lower economic impact
+- Consent decrees attempt to address police misconduct but don't prevent historically biased data from training current algorithms, meaning past injustice becomes embedded in "objective" predictions
+
+##Reflection
+
+- The most important lesson is asking "SHOULD we build this?" before "HOW do we build this?" - technical accuracy doesn't equal social justice, and a statistically superior model can still be ethically problematic
+- Same technical methods could be redirected toward predictive models for justice (predicting eviction risk, health crises, food insecurity) where predictions lead to help instead of punishment

@@ -189,214 +189,18 @@
     "text": "Submission Checklist\nBefore submitting your portfolio link on Canvas:\n\nAll code chunks run without errors\nAll “[Fill this in]” prompts have been completed\nTables are properly formatted and readable\nExecutive summary addresses all four required components\nPortfolio navigation includes this assignment\nCensus API key is properly set\nDocument renders correctly to HTML\n\nRemember: Submit your portfolio URL on Canvas, not the file itself. Your assignment should be accessible at your-portfolio-url/assignments/assignment_1/your_file_name.html"
   },
   {
-    "objectID": "weekly-notes/week-07-notes.html",
-    "href": "weekly-notes/week-07-notes.html",
-    "title": "Week 7 Notes",
+    "objectID": "weekly-notes/week-09-notes.html",
+    "href": "weekly-notes/week-09-notes.html",
+    "title": "Week 9 Notes",
     "section": "",
-    "text": "##Key Concepts Learned\n\nWe learned about spatial autocorrelation and Tobler’s First Law of Geography - near things are more related than distant things\nMoran’s I is a diagnostic tool that detects spatial patterns in model errors, revealing if we’re missing important spatial relationships\nThe key distinction is that spatial lag/error models are for inference about spillover effects, while spatial feature engineering is for prediction\n\n##Coding Techniques\n\nmoran.mc(errors, weights, nsim = 999) tests for spatial autocorrelation in model residuals using Monte Carlo simulation\nAdding progress = FALSE to get_acs(), get_decennial(), and tigris functions suppresses progress messages in rendered documents\nThe workflow is: fit model → extract errors → create spatial weights → test Moran’s I → add spatial features if needed\n\n##Questions & Challenges\n\nThe biggest challenge is deciding what to do when Moran’s I shows significant spatial autocorrelation - should we add more spatial features at different buffer distances or try neighborhood fixed effects?\nAnother challenge is avoiding the “simultaneity problem” where using neighbor prices to predict prices creates circular logic and data leakage\nFinding the right balance between capturing spatial relationships and avoiding overfitting requires both statistical testing and domain knowledge\n\n##Connections to Policy\n\nSpatially clustered model errors can reveal systematic bias in property assessments, leading to inequitable taxation in certain neighborhoods\nUnderstanding spatial autocorrelation helps policymakers identify spillover effects like how crime or transit investments affect surrounding property values\nThis diagnostic approach ensures predictive models don’t perpetuate existing geographic inequalities in housing markets\n\n##Reflection\n\nMoran’s I is a diagnostic tool, not a solution - it tells us our model needs improvement but not exactly how to fix it\nThe iterative process of checking diagnostics, adding spatial features, and re-testing is essential rather than just relying on R-squared\nMoving forward, I’ll always map residuals and test for spatial patterns as part of my standard model evaluation workflow"
+    "text": "##Key Concepts Learned\n\nWe learned about “dirty data” - data derived from or influenced by corrupt, biased, and unlawful practices including fabricated data, systematic bias, and missing data, not just traditional data quality issues\nPredictive policing creates feedback loops where algorithms learn from biased historical policing patterns, then direct police to the same neighborhoods, generating more arrests that “confirm” the algorithm’s predictions\nThe key distinction is that crime data doesn’t reveal actual crime - it reveals policing patterns, because crime data is always socially constructed, selectively enforced, and organizationally filtered\n\n##Coding Techniques\n\nCount-based crime models use Poisson regression initially, but we check for overdispersion using dispersion statistics and switch to Negative Binomial regression when variance exceeds the mean\nKernel Density Estimation (KDE) with density.ppp(sigma = 1000) creates a baseline prediction using only past crime locations, which we compare against feature-based models to assess whether complexity adds value\nThe validation workflow is: train on 2017 data → create risk predictions → test on 2018 hold-out data → calculate hit rates by risk quintile → compare model performance to KDE baseline\n\n##Questions & Challenges\n\nThe biggest challenge is the impossibility of “neutral” crime data - even if we exclude racially biased drug arrest data, aren’t property crime and assault enforcement also biased? Where do we draw the line?\nAnother challenge is distinguishing between “cleaning” data (removing technical errors) versus addressing fundamental problems where the data itself reflects systemic injustice and cannot be “fixed”\nUnderstanding when a statistically “good” model (that beats KDE and performs well on hold-out data) can still be socially harmful requires considering who benefits, who is harmed, and what feedback loops are created\n\n##Connections to Policy\n\nCase studies from Baltimore, NYPD, and other departments revealed extensive stat manipulation including 14,000+ serious assaults misrecorded as minor offenses and officers planting evidence to meet arrest quotas\nPredictive policing systems exclude white-collar crime, wage theft ($300B+ annually), and corporate fraud from predictions, focusing enforcement only on street crime despite its much lower economic impact\nConsent decrees attempt to address police misconduct but don’t prevent historically biased data from training current algorithms, meaning past injustice becomes embedded in “objective” predictions\n\n##Reflection\n\nThe most important lesson is asking “SHOULD we build this?” before “HOW do we build this?” - technical accuracy doesn’t equal social justice, and a statistically superior model can still be ethically problematic\nSame technical methods could be redirected toward predictive models for justice (predicting eviction risk, health crises, food insecurity) where predictions lead to help instead of punishment"
   },
   {
-    "objectID": "weekly-notes/week-05-notes.html",
-    "href": "weekly-notes/week-05-notes.html",
-    "title": "Week 5 Notes",
+    "objectID": "weekly-notes/week-06-notes.html",
+    "href": "weekly-notes/week-06-notes.html",
+    "title": "Week 6 Notes",
     "section": "",
-    "text": "We learned about linear regression and different estimator and their purposes. We talked about how to differentiate inference and prediction. We also built our first model to test statistical significance. We talked about the case of overfitting and how test what is considered as a good model."
-  },
-  {
-    "objectID": "weekly-notes/week-05-notes.html#key-concepts-learned",
-    "href": "weekly-notes/week-05-notes.html#key-concepts-learned",
-    "title": "Week 5 Notes",
-    "section": "",
-    "text": "We learned about linear regression and different estimator and their purposes. We talked about how to differentiate inference and prediction. We also built our first model to test statistical significance. We talked about the case of overfitting and how test what is considered as a good model."
-  },
-  {
-    "objectID": "weekly-notes/week-05-notes.html#coding-techniques",
-    "href": "weekly-notes/week-05-notes.html#coding-techniques",
-    "title": "Week 5 Notes",
-    "section": "Coding Techniques",
-    "text": "Coding Techniques\n\nBelow are some of the core techniques that we covered in class and used in class.\nlm(formula = attribute ~ attribute, data = pa_data) is how to built a model.\nsummary of the model will provide all the important statistics.\nset.seed(123) is to set random number generator\nsqrt(mean is to find RMSE\ntrain_control &lt;- trainControl(method = “cv”, number = 10) sets up the cross-validation technique"
-  },
-  {
-    "objectID": "weekly-notes/week-05-notes.html#questions-challenges",
-    "href": "weekly-notes/week-05-notes.html#questions-challenges",
-    "title": "Week 5 Notes",
-    "section": "Questions & Challenges",
-    "text": "Questions & Challenges\n\nI think the hard question is how to find the best predictor for you model while also taking the consideration of different linear model assumption and the biases that we want to avoid. The in-class activity of finding home value was quite challeneging by finding the best predictors that are significant."
-  },
-  {
-    "objectID": "weekly-notes/week-05-notes.html#connections-to-policy",
-    "href": "weekly-notes/week-05-notes.html#connections-to-policy",
-    "title": "Week 5 Notes",
-    "section": "Connections to Policy",
-    "text": "Connections to Policy\n\nThis is super useful when we trying to find the correlation or coenction between different inputs and results especially when we are designing public policy."
-  },
-  {
-    "objectID": "weekly-notes/week-05-notes.html#reflection",
-    "href": "weekly-notes/week-05-notes.html#reflection",
-    "title": "Week 5 Notes",
-    "section": "Reflection",
-    "text": "Reflection\n\nIt is importan to remember the difference between inference and prediction. We need to carefully look at the model to prevent in-sample fit and overfitting. It is important to check assumption and plot things out to see."
-  },
-  {
-    "objectID": "weekly-notes/week-03-notes.html",
-    "href": "weekly-notes/week-03-notes.html",
-    "title": "Week 3 Notes",
-    "section": "",
-    "text": "We learn some ways to do visualizations and the asethetic mapping. What is a ggplot. We also learned how to join data."
-  },
-  {
-    "objectID": "weekly-notes/week-03-notes.html#key-concepts-learned",
-    "href": "weekly-notes/week-03-notes.html#key-concepts-learned",
-    "title": "Week 3 Notes",
-    "section": "",
-    "text": "We learn some ways to do visualizations and the asethetic mapping. What is a ggplot. We also learned how to join data."
-  },
-  {
-    "objectID": "weekly-notes/week-03-notes.html#coding-techniques",
-    "href": "weekly-notes/week-03-notes.html#coding-techniques",
-    "title": "Week 3 Notes",
-    "section": "Coding Techniques",
-    "text": "Coding Techniques\n\nIn class, we learned the basics of ggplot2 and joins in dplyr. In ggplot2, aesthetic mappings like x, y, color, fill, size, shape, and alpha control visual elements such as position, color, and transparency. A typical plot follows the structure ggplot(data) + aes(x, y) + geom_something() + additional_layers(), and layers are added with +. We also covered data joins in dplyr: left_join() keeps all rows from the left dataset, right_join() keeps all from the right, inner_join() keeps only matching rows, and full_join() keeps all rows from both, with left_join() being the most common for adding columns to a main dataset."
-  },
-  {
-    "objectID": "weekly-notes/week-03-notes.html#questions-challenges",
-    "href": "weekly-notes/week-03-notes.html#questions-challenges",
-    "title": "Week 3 Notes",
-    "section": "Questions & Challenges",
-    "text": "Questions & Challenges\n\nI think it is very important to follow all the steps correct to make everything work."
-  },
-  {
-    "objectID": "weekly-notes/week-03-notes.html#connections-to-policy",
-    "href": "weekly-notes/week-03-notes.html#connections-to-policy",
-    "title": "Week 3 Notes",
-    "section": "Connections to Policy",
-    "text": "Connections to Policy\n\nLearning ggplot2 and dplyr helps us turn data into clear visuals and summaries that make policy trends easier to understand. This makes it simpler to spot patterns and share insights that can guide better, data-informed decisions."
-  },
-  {
-    "objectID": "weekly-notes/week-03-notes.html#reflection",
-    "href": "weekly-notes/week-03-notes.html#reflection",
-    "title": "Week 3 Notes",
-    "section": "Reflection",
-    "text": "Reflection\n\nTo become more proficient in this process, it requires a lot of time. Even following the class excercise could be challenging. More practice!"
-  },
-  {
-    "objectID": "weekly-notes/week-01-notes.html",
-    "href": "weekly-notes/week-01-notes.html",
-    "title": "Week 1 Notes - Course Introduction",
-    "section": "",
-    "text": "What is Git, Github, Quarto, and full term for YAML (YAML Ain’t Markup Language).\nSome basic R coding language and went over an example on CAR data."
-  },
-  {
-    "objectID": "weekly-notes/week-01-notes.html#key-concepts-learned",
-    "href": "weekly-notes/week-01-notes.html#key-concepts-learned",
-    "title": "Week 1 Notes - Course Introduction",
-    "section": "",
-    "text": "What is Git, Github, Quarto, and full term for YAML (YAML Ain’t Markup Language).\nSome basic R coding language and went over an example on CAR data."
-  },
-  {
-    "objectID": "weekly-notes/week-01-notes.html#coding-techniques",
-    "href": "weekly-notes/week-01-notes.html#coding-techniques",
-    "title": "Week 1 Notes - Course Introduction",
-    "section": "Coding Techniques",
-    "text": "Coding Techniques\n\nBold text\nItalic text\nBold and italic\ncode text\nStrikethrough\nselect() - choose columns\nfilter() - choose rows\nmutate() - create new variables\nsummarize() - calculate statistics\ngroup_by() - operate on groups]\ntitle: “My Analysis” author: “Your Name” date: today format: html"
-  },
-  {
-    "objectID": "weekly-notes/week-01-notes.html#questions-challenges",
-    "href": "weekly-notes/week-01-notes.html#questions-challenges",
-    "title": "Week 1 Notes - Course Introduction",
-    "section": "Questions & Challenges",
-    "text": "Questions & Challenges\n\nI think it is hard to understand all the R code and notations.\nThis is my first time interact with R and Github. So I need to try everything first and I will find more challenges."
-  },
-  {
-    "objectID": "weekly-notes/week-01-notes.html#connections-to-policy",
-    "href": "weekly-notes/week-01-notes.html#connections-to-policy",
-    "title": "Week 1 Notes - Course Introduction",
-    "section": "Connections to Policy",
-    "text": "Connections to Policy\n\nBoth the analysis and the data itself can be biased. The reason is that data were collected by someone who might be biased."
-  },
-  {
-    "objectID": "weekly-notes/week-01-notes.html#reflection",
-    "href": "weekly-notes/week-01-notes.html#reflection",
-    "title": "Week 1 Notes - Course Introduction",
-    "section": "Reflection",
-    "text": "Reflection\n\nQuarto is really interesting. Looking forward to see more what Quarto can do.\nThrough our assignment. I think it will be a great practice for me."
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "MUSA 5080 Portfolio",
-    "section": "",
-    "text": "This portfolio documents my learning journey in Public Policy Analytics (MUSA 5080).\n\n\nAdvanced spatial analysis and data science for urban planning and public policy.\n\n\n\n\nWeekly Notes: My learning reflections and key concepts\nAssignment: Completed assignments and analyses\nFinal Project: Capstone modeling challenge\n\n\n\n\n\nMy name is Ye and I did my Bachelor in Urban Planning at USC ✌️✌️.\nMy email is yezhang1@upenn.edu\nMy Github user name is yezhanggg\nI think it is a requirement. Also I don’t have any prior experience with R and I think it is powerful tool that would be really helpful for me to know. It has so many potential and implications that I could use in multiple areas and projects.\n\n\n\n\n\nEmail: [yezhang1@design.upenn.edu]\nGitHub: [@yezhanggg]"
-  },
-  {
-    "objectID": "index.html#about-this-course",
-    "href": "index.html#about-this-course",
-    "title": "MUSA 5080 Portfolio",
-    "section": "",
-    "text": "Advanced spatial analysis and data science for urban planning and public policy."
-  },
-  {
-    "objectID": "index.html#portfolio-structure",
-    "href": "index.html#portfolio-structure",
-    "title": "MUSA 5080 Portfolio",
-    "section": "",
-    "text": "Weekly Notes: My learning reflections and key concepts\nAssignment: Completed assignments and analyses\nFinal Project: Capstone modeling challenge"
-  },
-  {
-    "objectID": "index.html#about-me",
-    "href": "index.html#about-me",
-    "title": "MUSA 5080 Portfolio",
-    "section": "",
-    "text": "My name is Ye and I did my Bachelor in Urban Planning at USC ✌️✌️.\nMy email is yezhang1@upenn.edu\nMy Github user name is yezhanggg\nI think it is a requirement. Also I don’t have any prior experience with R and I think it is powerful tool that would be really helpful for me to know. It has so many potential and implications that I could use in multiple areas and projects."
-  },
-  {
-    "objectID": "index.html#contact",
-    "href": "index.html#contact",
-    "title": "MUSA 5080 Portfolio",
-    "section": "",
-    "text": "Email: [yezhang1@design.upenn.edu]\nGitHub: [@yezhanggg]"
-  },
-  {
-    "objectID": "weekly-notes/week-02-notes.html",
-    "href": "weekly-notes/week-02-notes.html",
-    "title": "Week 2 Notes",
-    "section": "",
-    "text": "I learned about topics on algorithmic decision making and what is census data.\nWe also went through a scenarios practices where we designed the ethical algorithms.\nThe importance of having algorithmic decision making.\nCensus data is really large but it has a lot of potential to do some great things."
-  },
-  {
-    "objectID": "weekly-notes/week-02-notes.html#key-concepts-learned",
-    "href": "weekly-notes/week-02-notes.html#key-concepts-learned",
-    "title": "Week 2 Notes",
-    "section": "",
-    "text": "I learned about topics on algorithmic decision making and what is census data.\nWe also went through a scenarios practices where we designed the ethical algorithms.\nThe importance of having algorithmic decision making.\nCensus data is really large but it has a lot of potential to do some great things."
-  },
-  {
-    "objectID": "weekly-notes/week-02-notes.html#coding-techniques",
-    "href": "weekly-notes/week-02-notes.html#coding-techniques",
-    "title": "Week 2 Notes",
-    "section": "Coding Techniques",
-    "text": "Coding Techniques\n\nFunctions that I learned include “str_remove(), str_extract(), str_replace(), case_when(),"
-  },
-  {
-    "objectID": "weekly-notes/week-02-notes.html#questions-challenges",
-    "href": "weekly-notes/week-02-notes.html#questions-challenges",
-    "title": "Week 2 Notes",
-    "section": "Questions & Challenges",
-    "text": "Questions & Challenges\n\nI think it will take some time to fully understand how to best use the Census Tract. I think it will take a lot of trials and error. The more pract the better we will get at it."
-  },
-  {
-    "objectID": "weekly-notes/week-02-notes.html#connections-to-policy",
-    "href": "weekly-notes/week-02-notes.html#connections-to-policy",
-    "title": "Week 2 Notes",
-    "section": "Connections to Policy",
-    "text": "Connections to Policy\n\nIt is important to understand why we want to do algorthimic decision making in policy.\nData analytics is a subjective process because it involves human decisions. So we need to know to be best clean the data and understand the data."
-  },
-  {
-    "objectID": "weekly-notes/week-02-notes.html#reflection",
-    "href": "weekly-notes/week-02-notes.html#reflection",
-    "title": "Week 2 Notes",
-    "section": "Reflection",
-    "text": "Reflection\n\nLooking forward to explore the census data more and to see what insightful result we could get. Also really looking forward to the data update in the end of this year. To see how status have changed for people."
+    "text": "Key Concepts Learned\n\nWe learned how to expand regression models beyond simple continuous variables by incorporating categorical variables (like neighborhoods), interaction terms, and polynomial terms to capture complex relationships\nThe hedonic model framework was introduced, showing how housing prices are determined by structural features, spatial characteristics, and neighborhood effects bundled together\nWe explored Tobler’s First Law and spatial autocorrelation, understanding that nearby houses influence each other’s values, which requires us to add spatial features like buffer aggregations, k-nearest neighbors, and distance to amenities\n\nCoding Techniques\n\nst_as_sf(coords = c(“Longitude”, “Latitude”), crs = 4326) converts dataframe to spatial object, and st_transform(‘ESRI:102286’) projects to appropriate coordinate system for distance calculations\nst_join(nhoods, join = st_intersects) performs spatial join to assign each house to its neighborhood polygon\nadd_count(name) followed by mutate(name_cv = if_else(n &lt; 10, “Small_Neighborhoods”, as.character(name))) groups sparse categories to prevent cross-validation errors\nst_buffer(dist = 500) creates circular buffers around points for spatial aggregation, and st_nn(k = 3) finds k-nearest neighbors for spatial lag calculations\ntrain(SalePrice ~ LivingArea + as.factor(name_cv), method = “lm”, trControl = trainControl(method = “cv”, number = 10)) runs 10-fold cross-validation with categorical fixed effects\n\nQuestions & Challenges\n\nThe biggest challenge is handling sparse categories in cross-validation - when neighborhoods have fewer than 10 observations, random splits can put all instances in one fold, causing the model to fail on unseen categories\nCreating meaningful spatial features requires domain knowledge about what distances matter (500ft vs 1 mile buffers for crime) and which amenities actually affect prices\nDeciding between grouping small neighborhoods into “Other” versus dropping them entirely involves trade-offs between model stability and potentially excluding marginalized communities from analysis\n\nConnections to Policy\n\nFixed effects models can reveal systematic price disparities across neighborhoods that aren’t explained by structural features alone, potentially indicating discrimination or historical disinvestment patterns\nUnderstanding which spatial features (crime, transit access, parks) have the strongest effects on property values helps prioritize infrastructure investments and target interventions where they’ll have maximum impact\nThe sparse category problem highlights data equity issues - neighborhoods with few sales are often lower-income areas, and excluding them from analysis risks making policy recommendations that ignore communities most in need\n\nReflection\n\nThe progression from structural-only models (R² = 0.13) to models with spatial features and fixed effects (much lower RMSE) demonstrates how critical location is to housing values beyond just physical characteristics\nI need to always check category counts before running cross-validation with categorical variables to avoid the “factor has new levels” error\nThe insight that fixed effects bundle many unmeasured factors (schools, prestige, amenities) explains why they often provide the biggest prediction improvement, even though they’re less interpretable than specific spatial features"
   },
   {
     "objectID": "weekly-notes/week-04-notes.html",
@@ -441,11 +245,214 @@
     "text": "Reflection\n\nBeing able to master the spatial analysis and GIS in R will unlock great potential in coming up with policy decision and more in-depth analysis for urban issues."
   },
   {
-    "objectID": "weekly-notes/week-06-notes.html",
-    "href": "weekly-notes/week-06-notes.html",
-    "title": "Week 6 Notes",
+    "objectID": "weekly-notes/week-02-notes.html",
+    "href": "weekly-notes/week-02-notes.html",
+    "title": "Week 2 Notes",
     "section": "",
-    "text": "Key Concepts Learned\n\nWe learned how to expand regression models beyond simple continuous variables by incorporating categorical variables (like neighborhoods), interaction terms, and polynomial terms to capture complex relationships\nThe hedonic model framework was introduced, showing how housing prices are determined by structural features, spatial characteristics, and neighborhood effects bundled together\nWe explored Tobler’s First Law and spatial autocorrelation, understanding that nearby houses influence each other’s values, which requires us to add spatial features like buffer aggregations, k-nearest neighbors, and distance to amenities\n\nCoding Techniques\n\nst_as_sf(coords = c(“Longitude”, “Latitude”), crs = 4326) converts dataframe to spatial object, and st_transform(‘ESRI:102286’) projects to appropriate coordinate system for distance calculations\nst_join(nhoods, join = st_intersects) performs spatial join to assign each house to its neighborhood polygon\nadd_count(name) followed by mutate(name_cv = if_else(n &lt; 10, “Small_Neighborhoods”, as.character(name))) groups sparse categories to prevent cross-validation errors\nst_buffer(dist = 500) creates circular buffers around points for spatial aggregation, and st_nn(k = 3) finds k-nearest neighbors for spatial lag calculations\ntrain(SalePrice ~ LivingArea + as.factor(name_cv), method = “lm”, trControl = trainControl(method = “cv”, number = 10)) runs 10-fold cross-validation with categorical fixed effects\n\nQuestions & Challenges\n\nThe biggest challenge is handling sparse categories in cross-validation - when neighborhoods have fewer than 10 observations, random splits can put all instances in one fold, causing the model to fail on unseen categories\nCreating meaningful spatial features requires domain knowledge about what distances matter (500ft vs 1 mile buffers for crime) and which amenities actually affect prices\nDeciding between grouping small neighborhoods into “Other” versus dropping them entirely involves trade-offs between model stability and potentially excluding marginalized communities from analysis\n\nConnections to Policy\n\nFixed effects models can reveal systematic price disparities across neighborhoods that aren’t explained by structural features alone, potentially indicating discrimination or historical disinvestment patterns\nUnderstanding which spatial features (crime, transit access, parks) have the strongest effects on property values helps prioritize infrastructure investments and target interventions where they’ll have maximum impact\nThe sparse category problem highlights data equity issues - neighborhoods with few sales are often lower-income areas, and excluding them from analysis risks making policy recommendations that ignore communities most in need\n\nReflection\n\nThe progression from structural-only models (R² = 0.13) to models with spatial features and fixed effects (much lower RMSE) demonstrates how critical location is to housing values beyond just physical characteristics\nI need to always check category counts before running cross-validation with categorical variables to avoid the “factor has new levels” error\nThe insight that fixed effects bundle many unmeasured factors (schools, prestige, amenities) explains why they often provide the biggest prediction improvement, even though they’re less interpretable than specific spatial features"
+    "text": "I learned about topics on algorithmic decision making and what is census data.\nWe also went through a scenarios practices where we designed the ethical algorithms.\nThe importance of having algorithmic decision making.\nCensus data is really large but it has a lot of potential to do some great things."
+  },
+  {
+    "objectID": "weekly-notes/week-02-notes.html#key-concepts-learned",
+    "href": "weekly-notes/week-02-notes.html#key-concepts-learned",
+    "title": "Week 2 Notes",
+    "section": "",
+    "text": "I learned about topics on algorithmic decision making and what is census data.\nWe also went through a scenarios practices where we designed the ethical algorithms.\nThe importance of having algorithmic decision making.\nCensus data is really large but it has a lot of potential to do some great things."
+  },
+  {
+    "objectID": "weekly-notes/week-02-notes.html#coding-techniques",
+    "href": "weekly-notes/week-02-notes.html#coding-techniques",
+    "title": "Week 2 Notes",
+    "section": "Coding Techniques",
+    "text": "Coding Techniques\n\nFunctions that I learned include “str_remove(), str_extract(), str_replace(), case_when(),"
+  },
+  {
+    "objectID": "weekly-notes/week-02-notes.html#questions-challenges",
+    "href": "weekly-notes/week-02-notes.html#questions-challenges",
+    "title": "Week 2 Notes",
+    "section": "Questions & Challenges",
+    "text": "Questions & Challenges\n\nI think it will take some time to fully understand how to best use the Census Tract. I think it will take a lot of trials and error. The more pract the better we will get at it."
+  },
+  {
+    "objectID": "weekly-notes/week-02-notes.html#connections-to-policy",
+    "href": "weekly-notes/week-02-notes.html#connections-to-policy",
+    "title": "Week 2 Notes",
+    "section": "Connections to Policy",
+    "text": "Connections to Policy\n\nIt is important to understand why we want to do algorthimic decision making in policy.\nData analytics is a subjective process because it involves human decisions. So we need to know to be best clean the data and understand the data."
+  },
+  {
+    "objectID": "weekly-notes/week-02-notes.html#reflection",
+    "href": "weekly-notes/week-02-notes.html#reflection",
+    "title": "Week 2 Notes",
+    "section": "Reflection",
+    "text": "Reflection\n\nLooking forward to explore the census data more and to see what insightful result we could get. Also really looking forward to the data update in the end of this year. To see how status have changed for people."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "MUSA 5080 Portfolio",
+    "section": "",
+    "text": "This portfolio documents my learning journey in Public Policy Analytics (MUSA 5080).\n\n\nAdvanced spatial analysis and data science for urban planning and public policy.\n\n\n\n\nWeekly Notes: My learning reflections and key concepts\nAssignment: Completed assignments and analyses\nFinal Project: Capstone modeling challenge\n\n\n\n\n\nMy name is Ye and I did my Bachelor in Urban Planning at USC ✌️✌️.\nMy email is yezhang1@upenn.edu\nMy Github user name is yezhanggg\nI think it is a requirement. Also I don’t have any prior experience with R and I think it is powerful tool that would be really helpful for me to know. It has so many potential and implications that I could use in multiple areas and projects.\n\n\n\n\n\nEmail: [yezhang1@design.upenn.edu]\nGitHub: [@yezhanggg]"
+  },
+  {
+    "objectID": "index.html#about-this-course",
+    "href": "index.html#about-this-course",
+    "title": "MUSA 5080 Portfolio",
+    "section": "",
+    "text": "Advanced spatial analysis and data science for urban planning and public policy."
+  },
+  {
+    "objectID": "index.html#portfolio-structure",
+    "href": "index.html#portfolio-structure",
+    "title": "MUSA 5080 Portfolio",
+    "section": "",
+    "text": "Weekly Notes: My learning reflections and key concepts\nAssignment: Completed assignments and analyses\nFinal Project: Capstone modeling challenge"
+  },
+  {
+    "objectID": "index.html#about-me",
+    "href": "index.html#about-me",
+    "title": "MUSA 5080 Portfolio",
+    "section": "",
+    "text": "My name is Ye and I did my Bachelor in Urban Planning at USC ✌️✌️.\nMy email is yezhang1@upenn.edu\nMy Github user name is yezhanggg\nI think it is a requirement. Also I don’t have any prior experience with R and I think it is powerful tool that would be really helpful for me to know. It has so many potential and implications that I could use in multiple areas and projects."
+  },
+  {
+    "objectID": "index.html#contact",
+    "href": "index.html#contact",
+    "title": "MUSA 5080 Portfolio",
+    "section": "",
+    "text": "Email: [yezhang1@design.upenn.edu]\nGitHub: [@yezhanggg]"
+  },
+  {
+    "objectID": "weekly-notes/week-01-notes.html",
+    "href": "weekly-notes/week-01-notes.html",
+    "title": "Week 1 Notes - Course Introduction",
+    "section": "",
+    "text": "What is Git, Github, Quarto, and full term for YAML (YAML Ain’t Markup Language).\nSome basic R coding language and went over an example on CAR data."
+  },
+  {
+    "objectID": "weekly-notes/week-01-notes.html#key-concepts-learned",
+    "href": "weekly-notes/week-01-notes.html#key-concepts-learned",
+    "title": "Week 1 Notes - Course Introduction",
+    "section": "",
+    "text": "What is Git, Github, Quarto, and full term for YAML (YAML Ain’t Markup Language).\nSome basic R coding language and went over an example on CAR data."
+  },
+  {
+    "objectID": "weekly-notes/week-01-notes.html#coding-techniques",
+    "href": "weekly-notes/week-01-notes.html#coding-techniques",
+    "title": "Week 1 Notes - Course Introduction",
+    "section": "Coding Techniques",
+    "text": "Coding Techniques\n\nBold text\nItalic text\nBold and italic\ncode text\nStrikethrough\nselect() - choose columns\nfilter() - choose rows\nmutate() - create new variables\nsummarize() - calculate statistics\ngroup_by() - operate on groups]\ntitle: “My Analysis” author: “Your Name” date: today format: html"
+  },
+  {
+    "objectID": "weekly-notes/week-01-notes.html#questions-challenges",
+    "href": "weekly-notes/week-01-notes.html#questions-challenges",
+    "title": "Week 1 Notes - Course Introduction",
+    "section": "Questions & Challenges",
+    "text": "Questions & Challenges\n\nI think it is hard to understand all the R code and notations.\nThis is my first time interact with R and Github. So I need to try everything first and I will find more challenges."
+  },
+  {
+    "objectID": "weekly-notes/week-01-notes.html#connections-to-policy",
+    "href": "weekly-notes/week-01-notes.html#connections-to-policy",
+    "title": "Week 1 Notes - Course Introduction",
+    "section": "Connections to Policy",
+    "text": "Connections to Policy\n\nBoth the analysis and the data itself can be biased. The reason is that data were collected by someone who might be biased."
+  },
+  {
+    "objectID": "weekly-notes/week-01-notes.html#reflection",
+    "href": "weekly-notes/week-01-notes.html#reflection",
+    "title": "Week 1 Notes - Course Introduction",
+    "section": "Reflection",
+    "text": "Reflection\n\nQuarto is really interesting. Looking forward to see more what Quarto can do.\nThrough our assignment. I think it will be a great practice for me."
+  },
+  {
+    "objectID": "weekly-notes/week-03-notes.html",
+    "href": "weekly-notes/week-03-notes.html",
+    "title": "Week 3 Notes",
+    "section": "",
+    "text": "We learn some ways to do visualizations and the asethetic mapping. What is a ggplot. We also learned how to join data."
+  },
+  {
+    "objectID": "weekly-notes/week-03-notes.html#key-concepts-learned",
+    "href": "weekly-notes/week-03-notes.html#key-concepts-learned",
+    "title": "Week 3 Notes",
+    "section": "",
+    "text": "We learn some ways to do visualizations and the asethetic mapping. What is a ggplot. We also learned how to join data."
+  },
+  {
+    "objectID": "weekly-notes/week-03-notes.html#coding-techniques",
+    "href": "weekly-notes/week-03-notes.html#coding-techniques",
+    "title": "Week 3 Notes",
+    "section": "Coding Techniques",
+    "text": "Coding Techniques\n\nIn class, we learned the basics of ggplot2 and joins in dplyr. In ggplot2, aesthetic mappings like x, y, color, fill, size, shape, and alpha control visual elements such as position, color, and transparency. A typical plot follows the structure ggplot(data) + aes(x, y) + geom_something() + additional_layers(), and layers are added with +. We also covered data joins in dplyr: left_join() keeps all rows from the left dataset, right_join() keeps all from the right, inner_join() keeps only matching rows, and full_join() keeps all rows from both, with left_join() being the most common for adding columns to a main dataset."
+  },
+  {
+    "objectID": "weekly-notes/week-03-notes.html#questions-challenges",
+    "href": "weekly-notes/week-03-notes.html#questions-challenges",
+    "title": "Week 3 Notes",
+    "section": "Questions & Challenges",
+    "text": "Questions & Challenges\n\nI think it is very important to follow all the steps correct to make everything work."
+  },
+  {
+    "objectID": "weekly-notes/week-03-notes.html#connections-to-policy",
+    "href": "weekly-notes/week-03-notes.html#connections-to-policy",
+    "title": "Week 3 Notes",
+    "section": "Connections to Policy",
+    "text": "Connections to Policy\n\nLearning ggplot2 and dplyr helps us turn data into clear visuals and summaries that make policy trends easier to understand. This makes it simpler to spot patterns and share insights that can guide better, data-informed decisions."
+  },
+  {
+    "objectID": "weekly-notes/week-03-notes.html#reflection",
+    "href": "weekly-notes/week-03-notes.html#reflection",
+    "title": "Week 3 Notes",
+    "section": "Reflection",
+    "text": "Reflection\n\nTo become more proficient in this process, it requires a lot of time. Even following the class excercise could be challenging. More practice!"
+  },
+  {
+    "objectID": "weekly-notes/week-05-notes.html",
+    "href": "weekly-notes/week-05-notes.html",
+    "title": "Week 5 Notes",
+    "section": "",
+    "text": "We learned about linear regression and different estimator and their purposes. We talked about how to differentiate inference and prediction. We also built our first model to test statistical significance. We talked about the case of overfitting and how test what is considered as a good model."
+  },
+  {
+    "objectID": "weekly-notes/week-05-notes.html#key-concepts-learned",
+    "href": "weekly-notes/week-05-notes.html#key-concepts-learned",
+    "title": "Week 5 Notes",
+    "section": "",
+    "text": "We learned about linear regression and different estimator and their purposes. We talked about how to differentiate inference and prediction. We also built our first model to test statistical significance. We talked about the case of overfitting and how test what is considered as a good model."
+  },
+  {
+    "objectID": "weekly-notes/week-05-notes.html#coding-techniques",
+    "href": "weekly-notes/week-05-notes.html#coding-techniques",
+    "title": "Week 5 Notes",
+    "section": "Coding Techniques",
+    "text": "Coding Techniques\n\nBelow are some of the core techniques that we covered in class and used in class.\nlm(formula = attribute ~ attribute, data = pa_data) is how to built a model.\nsummary of the model will provide all the important statistics.\nset.seed(123) is to set random number generator\nsqrt(mean is to find RMSE\ntrain_control &lt;- trainControl(method = “cv”, number = 10) sets up the cross-validation technique"
+  },
+  {
+    "objectID": "weekly-notes/week-05-notes.html#questions-challenges",
+    "href": "weekly-notes/week-05-notes.html#questions-challenges",
+    "title": "Week 5 Notes",
+    "section": "Questions & Challenges",
+    "text": "Questions & Challenges\n\nI think the hard question is how to find the best predictor for you model while also taking the consideration of different linear model assumption and the biases that we want to avoid. The in-class activity of finding home value was quite challeneging by finding the best predictors that are significant."
+  },
+  {
+    "objectID": "weekly-notes/week-05-notes.html#connections-to-policy",
+    "href": "weekly-notes/week-05-notes.html#connections-to-policy",
+    "title": "Week 5 Notes",
+    "section": "Connections to Policy",
+    "text": "Connections to Policy\n\nThis is super useful when we trying to find the correlation or coenction between different inputs and results especially when we are designing public policy."
+  },
+  {
+    "objectID": "weekly-notes/week-05-notes.html#reflection",
+    "href": "weekly-notes/week-05-notes.html#reflection",
+    "title": "Week 5 Notes",
+    "section": "Reflection",
+    "text": "Reflection\n\nIt is importan to remember the difference between inference and prediction. We need to carefully look at the model to prevent in-sample fit and overfitting. It is important to check assumption and plot things out to see."
+  },
+  {
+    "objectID": "weekly-notes/week-07-notes.html",
+    "href": "weekly-notes/week-07-notes.html",
+    "title": "Week 7 Notes",
+    "section": "",
+    "text": "##Key Concepts Learned\n\nWe learned about spatial autocorrelation and Tobler’s First Law of Geography - near things are more related than distant things\nMoran’s I is a diagnostic tool that detects spatial patterns in model errors, revealing if we’re missing important spatial relationships\nThe key distinction is that spatial lag/error models are for inference about spillover effects, while spatial feature engineering is for prediction\n\n##Coding Techniques\n\nmoran.mc(errors, weights, nsim = 999) tests for spatial autocorrelation in model residuals using Monte Carlo simulation\nAdding progress = FALSE to get_acs(), get_decennial(), and tigris functions suppresses progress messages in rendered documents\nThe workflow is: fit model → extract errors → create spatial weights → test Moran’s I → add spatial features if needed\n\n##Questions & Challenges\n\nThe biggest challenge is deciding what to do when Moran’s I shows significant spatial autocorrelation - should we add more spatial features at different buffer distances or try neighborhood fixed effects?\nAnother challenge is avoiding the “simultaneity problem” where using neighbor prices to predict prices creates circular logic and data leakage\nFinding the right balance between capturing spatial relationships and avoiding overfitting requires both statistical testing and domain knowledge\n\n##Connections to Policy\n\nSpatially clustered model errors can reveal systematic bias in property assessments, leading to inequitable taxation in certain neighborhoods\nUnderstanding spatial autocorrelation helps policymakers identify spillover effects like how crime or transit investments affect surrounding property values\nThis diagnostic approach ensures predictive models don’t perpetuate existing geographic inequalities in housing markets\n\n##Reflection\n\nMoran’s I is a diagnostic tool, not a solution - it tells us our model needs improvement but not exactly how to fix it\nThe iterative process of checking diagnostics, adding spatial features, and re-testing is essential rather than just relying on R-squared\nMoving forward, I’ll always map residuals and test for spatial patterns as part of my standard model evaluation workflow"
   },
   {
     "objectID": "labs/Zhang_Ye_Assignment2.html",
