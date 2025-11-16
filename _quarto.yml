@@ -13,6 +13,7 @@ project:
     - weekly-notes/week-09-notes.qmd
     - labs/Zhang_Ye_Assignment2.qmd
     - labs/Zhang_Ye_Assignment1.qmd
+    - labs/Zhang_Ye_Assignment4.qmd
     - labs/Zhang_Ye_Appendix.qmd
     - labs/presentation/presentation.qmd
 
@@ -50,6 +51,8 @@ website:
             text: Midterm Appendix
           - href: labs/presentation/presentation.qmd
             text: Midterm Presentation
+          - href: labs/Zhang_Ye_Assignment4.qmd
+            text: Assignment 4
 
 format:
   html:

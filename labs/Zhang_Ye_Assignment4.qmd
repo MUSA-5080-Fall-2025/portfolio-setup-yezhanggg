@@ -1,0 +1,906 @@
+---
+title: "Lab Assignment 4: Spatial Predictive Analysis"
+subtitle: "Spatial Predictive Analysis of Vacant and Abandoned Buildings"
+author: "Ye Zhang"
+date: "2025-11-16"
+format:
+  html:
+    code-fold: show
+    code-tools: true
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    theme: cosmo
+    embed-resources: true
+editor: visual
+execute:
+  warning: false
+  message: false
+---
+
+## Introduction
+
+In this analysis, I will build a spatial predictive model for vacant and abandoned buildings in Chicago. Abandoned buildings are a critical urban issue that affects neighborhood stability, property values, public safety, and community well-being. By analyzing the spatial patterns of reported vacant and abandoned buildings, we can better understand where these issues concentrate and potentially improve city intervention strategies.
+
+# Setup
+
+```{r setup}
+#| message: false
+#| warning: false
+
+# Load required packages
+library(tidyverse)      # Data manipulation
+library(sf)             # Spatial operations
+library(here)           # Relative file paths
+library(viridis)        # Color scales
+library(spdep)          # Spatial dependence
+library(FNN)            # Fast nearest neighbors
+library(MASS)           # Negative binomial regression
+library(patchwork)      # Plot composition
+library(knitr)          # Tables
+library(kableExtra)     # Table formatting
+library(spatstat.geom)    # Spatial geometries
+library(spatstat.explore) # Spatial exploration/KDE
+library(lubridate)      # Date handling
+library(terra)          # Raster operations
+
+# Set options
+options(scipen = 999)  # No scientific notation
+set.seed(5080)         # Reproducibility
+
+# Create consistent theme for visualizations
+theme_buildings <- function(base_size = 11) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      plot.title = element_text(face = "bold", size = base_size + 1),
+      plot.subtitle = element_text(color = "gray30", size = base_size - 1),
+      legend.position = "right",
+      panel.grid.minor = element_blank(),
+      axis.text = element_blank(),
+      axis.title = element_blank()
+    )
+}
+
+# Set as default
+theme_set(theme_buildings())
+
+cat("✓ All packages loaded successfully!\n")
+```
+
+# Part 1: Data Loading & Exploration
+
+## Load Chicago Spatial Boundaries
+
+```{r load-boundaries}
+#| message: false
+
+# Load police districts - we'll use these for cross-validation later
+policeDistricts <- 
+  st_read("https://data.cityofchicago.org/api/geospatial/24zt-jpfn?method=export&format=GeoJSON") %>%
+  st_transform('ESRI:102271') %>%
+  dplyr::select(District = dist_num)
+
+# Load police beats - smaller units within districts
+policeBeats <- 
+  st_read("https://data.cityofchicago.org/api/geospatial/n9it-hstw?method=export&format=GeoJSON") %>%
+  st_transform('ESRI:102271') %>%
+  dplyr::select(Beat = beat_num)
+
+# Load Chicago boundary - the city outline
+chicagoBoundary <- 
+  st_read("https://raw.githubusercontent.com/urbanSpatial/Public-Policy-Analytics-Landing/master/DATA/Chapter5/chicagoBoundary.geojson") %>%
+  st_transform('ESRI:102271')
+
+cat("✓ Loaded spatial boundaries\n")
+cat("  - Police districts:", nrow(policeDistricts), "\n")
+cat("  - Police beats:", nrow(policeBeats), "\n")
+```
+
+## Load Vacant and Abandoned Buildings Data
+
+```{r load-buildings}
+#| message: false
+
+# Load vacant and abandoned buildings data
+building_raw <- read_csv(here("data", "311_Service_Requests_-_Vacant_and_Abandoned_Buildings_Reported_-_Historical_20251116.csv"))
+
+# Check column names
+cat("Column names in dataset:\n")
+print(names(building_raw))
+
+# Convert to spatial object
+buildings <- building_raw %>%
+  # Remove rows without coordinates
+  filter(!is.na(`X COORDINATE`), !is.na(`Y COORDINATE`)) %>%
+  # Convert to sf object - coordinates are in State Plane
+  st_as_sf(coords = c("X COORDINATE", "Y COORDINATE"), crs = 3435) %>%  
+  # Transform to the CRS used in the exercise (ESRI:102271)
+  st_transform('ESRI:102271')
+
+# Check the data
+cat("\n✓ Loaded abandoned buildings data\n")
+cat("  - Number of building reports:", nrow(buildings), "\n")
+cat("  - CRS:", st_crs(buildings)$input, "\n")
+```
+
+Loading the 311 service requests for vacant and abandoned buildings and converting them to a spatial format that matches our other Chicago data.
+
+## Visualize Building Distribution
+
+```{r visualize-points}
+#| fig-width: 12
+#| fig-height: 5
+
+# Simple point map
+p1 <- ggplot() + 
+  geom_sf(data = chicagoBoundary, fill = "gray95", color = "gray60") +
+  geom_sf(data = buildings, color = "#d62828", size = 0.1, alpha = 0.4) +
+  labs(
+    title = "Vacant & Abandoned Building Locations",
+    subtitle = paste0("Chicago, n = ", format(nrow(buildings), big.mark = ","))
+  )
+
+# Density surface using modern syntax
+buildings_coords_plot <- as.data.frame(st_coordinates(buildings))
+names(buildings_coords_plot) <- c("X", "Y")
+
+p2 <- ggplot() + 
+  geom_sf(data = chicagoBoundary, fill = "gray95", color = "gray60") +
+  geom_density_2d_filled(
+    data = buildings_coords_plot,
+    aes(x = X, y = Y),
+    alpha = 0.7,
+    bins = 8
+  ) +
+  scale_fill_viridis_d(
+    option = "plasma",
+    direction = -1,
+    guide = "none"
+  ) +
+  labs(
+    title = "Density Surface",
+    subtitle = "Kernel density estimation"
+  )
+
+# Combine plots using patchwork
+p1 + p2 + 
+  plot_annotation(
+    title = "Spatial Distribution of Vacant & Abandoned Buildings in Chicago",
+    tag_levels = 'A'
+  )
+```
+
+Vacant and abandoned buildings are not evenly distributed across Chicago. The density surface reveals distinct concentration patterns with hot spots appearing in specific neighborhoods. There are clear clusters in the central and also south part of the city. High cluster in the south part of the city.
+
+# Part 2: Create Fishnet Grid
+
+## Create the Grid
+
+```{r create-fishnet}
+# Create a 500m x 500m grid over Chicago
+fishnet <- st_make_grid(
+  chicagoBoundary,
+  cellsize = 500,  # Each cell is 500 meters on each side
+  square = TRUE
+) %>%
+  st_sf() %>%
+  mutate(uniqueID = row_number())
+
+# Keep only cells that actually overlap with Chicago
+fishnet <- fishnet[chicagoBoundary, ]
+
+cat("✓ Created fishnet grid\n")
+cat("  - Number of cells:", nrow(fishnet), "\n")
+cat("  - Cell size: 500 x 500 meters\n")
+```
+
+Creating a grid of 500m x 500m squares that covers Chicago. This converts our point data into a regular grid that's easier to analyze and model.
+
+## Aggregate Buildings to Grid Cells
+
+```{r aggregate-buildings}
+# Count how many building reports fall in each grid cell
+buildings_fishnet <- st_join(buildings, fishnet, join = st_within) %>%
+  st_drop_geometry() %>%
+  group_by(uniqueID) %>%
+  summarize(countBuildings = n())
+
+# Join counts back to the grid (cells with 0 get NA, so we replace with 0)
+fishnet <- fishnet %>%
+  left_join(buildings_fishnet, by = "uniqueID") %>%
+  mutate(countBuildings = replace_na(countBuildings, 0))
+
+# Summary statistics
+cat("\nBuilding count distribution:\n")
+summary(fishnet$countBuildings)
+cat("\nCells with zero buildings:", 
+    sum(fishnet$countBuildings == 0), 
+    "/", nrow(fishnet),
+    "(", round(100 * sum(fishnet$countBuildings == 0) / nrow(fishnet), 1), "%)\n")
+```
+
+Counting how many abandoned building reports occurred in each grid cell.
+
+## Visualize the Grid
+
+```{r visualize-fishnet}
+#| fig-width: 8
+#| fig-height: 6
+
+# Map the counts in each grid cell
+ggplot() +
+  geom_sf(data = fishnet, aes(fill = countBuildings), color = NA) +
+  scale_fill_viridis_c(
+    name = "Abandoned\nBuildings",
+    option = "plasma",
+    trans = "sqrt"  # Square root transformation to see variation better
+  ) +
+  labs(
+    title = "Vacant & Abandoned Buildings by 500m Grid Cell",
+    subtitle = "Chicago"
+  ) +
+  theme_buildings()
+```
+
+The fishnet grid reveals clear spatial concentration of abandoned building reports. The highest counts (darker colors) cluster in south part of the city. Many cells have zero reports, while some hot spot cells have significantly elevated counts, indicating neighborhoods with persistent vacancy and abandonment issues.
+
+# Part 3: Spatial Features
+
+## Calculate k-Nearest Neighbors
+
+```{r calculate-knn}
+# Get coordinates of building points
+buildings_coords <- st_coordinates(buildings)
+
+# Get coordinates of grid cell centroids
+fishnet_coords <- st_coordinates(st_centroid(fishnet))
+
+# For each grid cell, find average distance to 5 nearest buildings
+nn_distances <- get.knnx(
+  data = buildings_coords,  
+  query = fishnet_coords,   
+  k = 5                    
+)
+
+# Add to fishnet
+fishnet <- fishnet %>%
+  mutate(
+    buildings.nn = rowMeans(nn_distances$nn.dist)
+  )
+
+cat("✓ Calculated k-nearest neighbors\n")
+cat("  - k = 5 nearest buildings\n")
+cat("  - Mean distance:", round(mean(fishnet$buildings.nn), 1), "meters\n")
+```
+
+For each grid cell, we find the average distance to the 5 nearest abandoned building reports. This measures how close each cell is to existing abandoned buildings.
+
+## Visualize k-NN Feature
+
+```{r visualize-knn}
+#| fig-width: 8
+#| fig-height: 6
+
+ggplot() +
+  geom_sf(data = fishnet, aes(fill = buildings.nn), color = NA) +
+  scale_fill_viridis_c(
+    name = "Mean Distance\nto 5 Nearest\nBuildings (m)",
+    option = "viridis",
+    direction = -1
+  ) +
+  labs(
+    title = "Average Distance to Nearest Abandoned Buildings",
+    subtitle = "Lower values = closer to existing abandoned buildings"
+  ) +
+  theme_buildings()
+```
+
+The k-NN map shows the consistent yellow coloring across most of the city suggests that abandoned buildings are a pervasive issue affecting nearly all neighborhoods rather than being isolated to just a few problem areas.
+
+# Part 4: Local Moran's I Analysis
+
+## Calculate Local Moran's I
+
+```{r local-morans-i}
+# Create spatial weights matrix (queen contiguity)
+coords <- st_centroid(fishnet) %>% st_coordinates()
+weight_matrix <- knn2nb(knearneigh(coords, k = 4))
+weights <- nb2listw(weight_matrix, style = "W", zero.policy = TRUE)
+
+# Calculate Local Moran's I
+fishnet <- fishnet %>%
+  mutate(
+    # Calculate local Moran's I statistic
+    localMorans = localmoran(countBuildings, weights, zero.policy = TRUE)[,1],
+    # Get p-values
+    localMorans_pval = localmoran(countBuildings, weights, zero.policy = TRUE)[,5]
+  )
+
+# Categorize into hot spots, cold spots, and not significant
+fishnet <- fishnet %>%
+  mutate(
+    cluster = case_when(
+      localMorans_pval > 0.05 ~ "Not Significant",
+      localMorans > 0 & countBuildings > median(countBuildings) ~ "High-High (Hot Spot)",
+      localMorans > 0 & countBuildings <= median(countBuildings) ~ "Low-Low (Cold Spot)",
+      localMorans < 0 & countBuildings > median(countBuildings) ~ "High-Low (Outlier)",
+      localMorans < 0 & countBuildings <= median(countBuildings) ~ "Low-High (Outlier)",
+      TRUE ~ "Not Significant"
+    )
+  )
+
+# Summary
+cat("Cluster distribution:\n")
+table(fishnet$cluster)
+```
+
+Local Moran's I identifies clusters of similar values. Hot spots are high-abandonment areas surrounded by high-abandonment neighbors. Cold spots are low-abandonment areas surrounded by low-abandonment neighbors.
+
+## Visualize Hot Spots
+
+```{r visualize-morans}
+#| fig-width: 10
+#| fig-height: 6
+
+# Map 1: Cluster types
+p1 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = cluster), color = NA) +
+  scale_fill_manual(
+    name = "Cluster Type",
+    values = c(
+      "High-High (Hot Spot)" = "#d7191c",
+      "Low-Low (Cold Spot)" = "#2c7bb6",
+      "High-Low (Outlier)" = "#fdae61",
+      "Low-High (Outlier)" = "#abd9e9",
+      "Not Significant" = "gray90"
+    )
+  ) +
+  labs(
+    title = "Local Moran's I Clusters",
+    subtitle = "Spatial autocorrelation of vacant & abandoned buildings"
+  ) +
+  theme_buildings()
+
+# Map 2: Local Moran's I values
+p2 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = localMorans), color = NA) +
+  scale_fill_gradient2(
+    name = "Local\nMoran's I",
+    low = "#2c7bb6",
+    mid = "white",
+    high = "#d7191c",
+    midpoint = 0
+  ) +
+  labs(
+    title = "Local Moran's I Values",
+    subtitle = "Positive = similar neighbors, Negative = dissimilar neighbors"
+  ) +
+  theme_buildings()
+
+p1 + p2
+```
+
+The hot spot analysis identifies concentrated high-abandonment clusters (red areas) in south Chicago neighborhoods and some in the north central. Cold spots (blue) appear in areas with consistently low abandonment and there are very few of them. The spatial clustering is statistically significant, confirming that building abandonment is not randomly distributed but concentrates in neighborhoods that might experiencing disinvestment.
+
+## Calculate Distance to Hot Spots
+
+```{r distance-to-hotspots}
+# Identify hot spot cells
+hotspots <- fishnet %>%
+  filter(cluster == "High-High (Hot Spot)")
+
+cat("Number of hot spots identified:", nrow(hotspots), "\n")
+
+# Only calculate distances if we have hot spots
+if(nrow(hotspots) > 0) {
+  # Get coordinates
+  hotspot_coords <- st_coordinates(st_centroid(hotspots))
+  fishnet_coords <- st_coordinates(st_centroid(fishnet))
+  
+  # Calculate distance from each cell to nearest hot spot
+  nn_to_hotspot <- get.knnx(
+    data = hotspot_coords,
+    query = fishnet_coords,
+    k = 1
+  )
+  
+  # Add to fishnet
+  fishnet <- fishnet %>%
+    mutate(
+      dist_to_hotspot = nn_to_hotspot$nn.dist[,1]
+    )
+  
+  cat("✓ Calculated distance to nearest hot spot\n")
+  cat("  - Number of hot spots:", nrow(hotspots), "\n")
+  cat("  - Mean distance to hot spot:", round(mean(fishnet$dist_to_hotspot), 1), "meters\n")
+} else {
+  # If no hot spots, create a placeholder distance variable
+  fishnet <- fishnet %>%
+    mutate(dist_to_hotspot = 0)
+  cat("⚠ No hot spots identified - using placeholder distance variable\n")
+}
+```
+
+Measuring how far each grid cell is from the nearest identified hot spot of building abandonment.
+
+## Visualize Distance to Hot Spots
+
+```{r visualize-dist-hotspot}
+#| fig-width: 8
+#| fig-height: 6
+
+if(nrow(hotspots) > 0) {
+  ggplot() +
+    geom_sf(data = fishnet, aes(fill = dist_to_hotspot), color = NA) +
+    scale_fill_viridis_c(
+      name = "Distance to\nNearest Hot Spot\n(meters)",
+      option = "magma",
+      direction = -1
+    ) +
+    labs(
+      title = "Distance to Nearest Abandonment Hot Spot",
+      subtitle = "Lower values = closer to hot spots"
+    ) +
+    theme_buildings()
+} else {
+  cat("No hot spots to visualize\n")
+}
+```
+
+The map shows clear concentric rings radiating outward from a central hot spot in west-central Chicago, where the lightest (near-zero distance) areas indicate the core abandonment cluster. The gradient pattern reveals that most of the northern half of the city is relatively close to this hot spot (orange tones), while the far north and some southern areas are more isolated from the main abandonment concentration (darker purple), suggesting these neighborhoods may be less affected by the spillover effects of concentrated building vacancy.
+
+# Part 4: Count Regression Models
+
+## Prepare Modeling Data
+
+```{r prepare-model-data}
+# Join spatial features with police district information
+fishnet_model <- fishnet %>%
+  st_join(policeDistricts, join = st_intersects, left = TRUE) %>%
+  st_drop_geometry() %>%
+  filter(!is.na(District))  # Remove cells outside districts
+
+# Add scaled versions of predictors (helps with NB convergence)
+fishnet_model <- fishnet_model %>%
+  mutate(
+    buildings.nn_scaled = scale(buildings.nn)[,1],
+    dist_to_hotspot_scaled = scale(dist_to_hotspot)[,1]
+  )
+
+cat("✓ Prepared modeling dataset\n")
+cat("  - Number of cells:", nrow(fishnet_model), "\n")
+cat("  - Number of districts:", n_distinct(fishnet_model$District), "\n")
+```
+
+Preparing our data for modeling by joining it with police districts (for cross-validation) and creating scaled versions of our predictor variables.
+
+## Fit Poisson Regression
+
+```{r poisson-model}
+# Fit Poisson model
+model_poisson <- glm(
+  countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+  data = fishnet_model,
+  family = poisson()
+)
+
+# Summary
+summary(model_poisson)
+
+# Get AIC - lower is better
+cat("\nPoisson Model AIC:", AIC(model_poisson), "\n")
+```
+
+Fitting a Poisson regression model that predicts building counts using distance to nearest buildings and distance to hot spots.
+
+## Fit Negative Binomial Regression
+
+```{r negbin-model}
+# Negative Binomial can have convergence issues with extreme values
+# We'll try multiple strategies to fit the model
+
+# First, check the data distribution
+cat("Data diagnostics:\n")
+cat("Building count range:", min(fishnet_model$countBuildings), "to", max(fishnet_model$countBuildings), "\n")
+cat("Mean:", round(mean(fishnet_model$countBuildings), 2), "\n")
+cat("Variance:", round(var(fishnet_model$countBuildings), 2), "\n")
+cat("Variance/Mean ratio:", round(var(fishnet_model$countBuildings)/mean(fishnet_model$countBuildings), 2), "\n\n")
+
+# Try fitting with robust error handling
+model_nb <- tryCatch({
+  cat("Trying NB model with scaled predictors...\n")
+  glm.nb(
+    countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+    data = fishnet_model,
+    control = glm.control(maxit = 100)
+  )
+}, error = function(e1) {
+  cat("Direct fit failed. Trying with Poisson starting values...\n")
+  
+  # Fit Poisson with scaled predictors
+  model_poisson_scaled <- glm(
+    countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+    data = fishnet_model,
+    family = poisson()
+  )
+  
+  tryCatch({
+    glm.nb(
+      countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+      data = fishnet_model,
+      start = coef(model_poisson_scaled),
+      init.theta = 1,
+      control = glm.control(maxit = 200, epsilon = 1e-4)
+    )
+  }, error = function(e2) {
+    cat("Still failing. Trying with subset of data to estimate theta...\n")
+    
+    # Remove extreme outliers to get initial estimates
+    fishnet_subset <- fishnet_model %>%
+      filter(countBuildings < quantile(countBuildings, 0.95))
+    
+    model_subset <- glm.nb(
+      countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+      data = fishnet_subset
+    )
+    
+    # Use subset estimates for full model
+    glm.nb(
+      countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+      data = fishnet_model,
+      start = coef(model_subset),
+      init.theta = model_subset$theta,
+      control = glm.control(maxit = 200, epsilon = 1e-4)
+    )
+  })
+})
+
+# Summary
+summary(model_nb)
+
+# Compare AIC (lower is better)
+cat("\nModel Comparison:\n")
+cat("Poisson AIC:", round(AIC(model_poisson), 1), "\n")
+cat("Negative Binomial AIC:", round(AIC(model_nb), 1), "\n")
+
+cat("\n✓ Model fitted successfully\n")
+```
+
+The lower AIC tells us which model fits better. Negative Binomial has a better fit through having a lower AIC. This large difference indicates that the data exhibits severe overdispersion - meaning the variance in abandoned building counts is much greater than the mean. The Poisson model's assumption that mean equals variance is strongly violated, making the Negative Binomial model the clearly superior choice for modeling this data. This overdispersion is typical in urban abandonment data where most areas have few or no abandoned buildings, but some hot spot areas have very high concentrations.
+
+# Part 5: Spatial Cross-Validation (2017)
+
+## Implement Leave-One-Group-Out CV
+
+```{r spatial-cv}
+# Get list of districts
+districts <- unique(fishnet_model$District)
+
+# Storage for results
+cv_results <- tibble()
+
+cat("Running Leave-One-Group-Out Cross-Validation...\n")
+cat("(", length(districts), "folds - one per district)\n\n")
+
+# Loop through each district
+for(i in 1:length(districts)) {
+  test_district <- districts[i]
+  
+  # Split data
+  train_data <- fishnet_model %>% filter(District != test_district)
+  test_data <- fishnet_model %>% filter(District == test_district)
+  
+  # Fit model on training data with robust error handling
+  model_cv <- tryCatch({
+    glm.nb(
+      countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+      data = train_data,
+      control = glm.control(maxit = 100)
+    )
+  }, error = function(e) {
+    # Fallback: use Poisson starting values
+    model_poisson_cv <- glm(
+      countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+      data = train_data,
+      family = poisson()
+    )
+    
+    tryCatch({
+      glm.nb(
+        countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+        data = train_data,
+        start = coef(model_poisson_cv),
+        init.theta = 1,
+        control = glm.control(maxit = 100)
+      )
+    }, error = function(e2) {
+      # Last resort: use subset approach
+      train_subset <- train_data %>%
+        filter(countBuildings < quantile(countBuildings, 0.95))
+      
+      model_subset <- glm.nb(
+        countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+        data = train_subset
+      )
+      
+      glm.nb(
+        countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+        data = train_data,
+        start = coef(model_subset),
+        init.theta = model_subset$theta,
+        control = glm.control(maxit = 100)
+      )
+    })
+  })
+  
+  # Predict on test data
+  test_data <- test_data %>%
+    mutate(
+      prediction = predict(model_cv, test_data, type = "response")
+    )
+  
+  # Calculate error metrics
+  mae <- mean(abs(test_data$countBuildings - test_data$prediction))
+  rmse <- sqrt(mean((test_data$countBuildings - test_data$prediction)^2))
+  
+  # Store results
+  cv_results <- bind_rows(
+    cv_results,
+    tibble(
+      fold = i,
+      test_district = test_district,
+      n_test = nrow(test_data),
+      mae = mae,
+      rmse = rmse
+    )
+  )
+  
+  cat("  Fold", i, "/", length(districts), "- District", test_district, 
+      "- MAE:", round(mae, 2), "\n")
+}
+
+# Overall results
+cat("\n✓ Cross-Validation Complete\n")
+cat("Mean MAE:", round(mean(cv_results$mae), 2), "\n")
+cat("Mean RMSE:", round(mean(cv_results$rmse), 2), "\n")
+```
+
+Testing our model by holding out one police district at a time, training on the rest, and seeing how well we predict the held-out district.
+
+## Cross-Validation Results
+
+```{r cv-results-table}
+# Show results by district
+cv_results %>%
+  arrange(desc(mae)) %>%
+  kable(
+    digits = 2,
+    caption = "LOGO CV Results by District",
+    col.names = c("Fold", "District", "N Test Cells", "MAE", "RMSE")
+  ) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+Spatial cross-validation (LOGO CV) is more appropriate than random CV because of spatial autocorrelation - nearby locations tend to have similar characteristics. District 7 had the highest MAE and RMSE, indicating it has unique abandonment patterns not well-captured by the model's spatial features or differs significantly from other districts in the training data.
+
+# Part 6: Model Evaluation
+
+## Generate Final Predictions
+
+```{r final-predictions}
+# First, add scaled predictors to the full fishnet for predictions
+fishnet <- fishnet %>%
+  mutate(
+    buildings.nn_scaled = (buildings.nn - mean(fishnet_model$buildings.nn, na.rm = TRUE)) / 
+                         sd(fishnet_model$buildings.nn, na.rm = TRUE),
+    dist_to_hotspot_scaled = (dist_to_hotspot - mean(fishnet_model$dist_to_hotspot, na.rm = TRUE)) / 
+                              sd(fishnet_model$dist_to_hotspot, na.rm = TRUE)
+  )
+
+# Fit final model on all data with robust error handling
+final_model <- tryCatch({
+  cat("Fitting final NB model...\n")
+  glm.nb(
+    countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+    data = fishnet_model,
+    control = glm.control(maxit = 100)
+  )
+}, error = function(e) {
+  cat("Using Poisson starting values for final model...\n")
+  
+  model_poisson_final <- glm(
+    countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+    data = fishnet_model,
+    family = poisson()
+  )
+  
+  tryCatch({
+    glm.nb(
+      countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+      data = fishnet_model,
+      start = coef(model_poisson_final),
+      init.theta = 1,
+      control = glm.control(maxit = 200)
+    )
+  }, error = function(e2) {
+    # Last resort
+    fishnet_subset <- fishnet_model %>%
+      filter(countBuildings < quantile(countBuildings, 0.95))
+    
+    model_subset <- glm.nb(
+      countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+      data = fishnet_subset
+    )
+    
+    glm.nb(
+      countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
+      data = fishnet_model,
+      start = coef(model_subset),
+      init.theta = model_subset$theta,
+      control = glm.control(maxit = 200)
+    )
+  })
+})
+
+# Create prediction data frame matching fishnet structure
+pred_data <- fishnet %>%
+  st_drop_geometry() %>%
+  dplyr::select(uniqueID, buildings.nn_scaled, dist_to_hotspot_scaled)
+
+# Add predictions to fishnet
+fishnet <- fishnet %>%
+  mutate(
+    prediction_nb = predict(final_model, pred_data, type = "response")
+  )
+
+cat("✓ Final predictions generated\n")
+```
+
+## Compare to KDE Baseline
+
+```{r kde-baseline}
+# Create KDE surface as baseline comparison
+# Convert to spatstat format
+buildings_ppp <- as.ppp(st_coordinates(buildings), W = as.owin(chicagoBoundary))
+
+# Calculate KDE
+kde_buildings <- density.ppp(buildings_ppp, sigma = 1000)
+
+# Convert back to raster and extract to fishnet
+kde_raster <- rast(kde_buildings)
+fishnet <- fishnet %>%
+  mutate(
+    kde_value = terra::extract(kde_raster, st_centroid(fishnet))[,2]
+  )
+
+# Normalize KDE to same scale as counts
+kde_sum <- sum(fishnet$kde_value, na.rm = TRUE)
+count_sum <- sum(fishnet$countBuildings, na.rm = TRUE)
+fishnet <- fishnet %>%
+  mutate(
+    prediction_kde = (kde_value / kde_sum) * count_sum
+  )
+```
+
+## Visualize Predictions
+
+```{r visualize-predictions}
+#| fig-width: 12
+#| fig-height: 4
+
+# Create three maps
+p1 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = countBuildings), color = NA) +
+  scale_fill_viridis_c(name = "Count", option = "plasma", limits = c(0, 50)) +
+  labs(title = "Actual Building Reports") +
+  theme_buildings()
+
+p2 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = prediction_nb), color = NA) +
+  scale_fill_viridis_c(name = "Predicted", option = "plasma", limits = c(0, 50)) +
+  labs(title = "Model Predictions (Neg. Binomial)") +
+  theme_buildings()
+
+p3 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = prediction_kde), color = NA) +
+  scale_fill_viridis_c(name = "Predicted", option = "plasma", limits = c(0, 50)) +
+  labs(title = "KDE Baseline Predictions") +
+  theme_buildings()
+
+p1 + p2 + p3 +
+  plot_annotation(
+    title = "Actual vs. Predicted Vacant & Abandoned Buildings"
+  )
+```
+
+## Model Performance Comparison
+
+```{r model-comparison-metrics}
+# Calculate performance metrics
+comparison <- fishnet %>%
+  st_drop_geometry() %>%
+  filter(!is.na(prediction_nb), !is.na(prediction_kde)) %>%
+  summarize(
+    model_mae = mean(abs(countBuildings - prediction_nb)),
+    model_rmse = sqrt(mean((countBuildings - prediction_nb)^2)),
+    kde_mae = mean(abs(countBuildings - prediction_kde)),
+    kde_rmse = sqrt(mean((countBuildings - prediction_kde)^2))
+  )
+
+comparison %>%
+  pivot_longer(everything(), names_to = "metric", values_to = "value") %>%
+  separate(metric, into = c("approach", "metric"), sep = "_") %>%
+  pivot_wider(names_from = metric, values_from = value) %>%
+  kable(
+    digits = 2,
+    caption = "Model Performance Comparison",
+    col.names = c("Approach", "MAE", "RMSE")
+  ) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+The Negative Binomial model slightly beats the KDE baseline with a MAE of 13.50 versus 15.66, meaning it's off by about 2 fewer buildings per cell - a modest 14% improvement. While the performance gain isn't huge, the model provides insight into why certain areas are at risk by showing that proximity to abandoned buildings and hot spots matters for prediction. Both approaches struggle in the same places, particularly underpredicting the most intense abandonment areas in the central west corridor and overpredicting in moderate zones.
+
+## Map Prediction Errors
+
+```{r prediction-errors}
+#| fig-width: 10
+#| fig-height: 5
+
+# Calculate errors
+fishnet <- fishnet %>%
+  mutate(
+    error_nb = countBuildings - prediction_nb,
+    abs_error_nb = abs(error_nb)
+  )
+
+# Map signed errors (positive = underpredicted, negative = overpredicted)
+p1 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = error_nb), color = NA) +
+  scale_fill_gradient2(
+    name = "Error",
+    low = "#2166ac", mid = "white", high = "#b2182b",
+    midpoint = 0,
+    limits = c(-20, 20)
+  ) +
+  labs(title = "Model Errors (Actual - Predicted)",
+       subtitle = "Red = underpredicted, Blue = overpredicted") +
+  theme_buildings()
+
+# Map absolute errors
+p2 <- ggplot() +
+  geom_sf(data = fishnet, aes(fill = abs_error_nb), color = NA) +
+  scale_fill_viridis_c(name = "Abs. Error", option = "magma") +
+  labs(title = "Absolute Model Errors") +
+  theme_buildings()
+
+p1 + p2
+```
+
+The error maps show a fairly balanced mix of underprediction (red) and overprediction (blue) scattered throughout the city, with no strong systematic spatial bias in the signed errors. However, the absolute error map reveals that the largest mistakes concentrate in specific hotspot areas in the central and western parts of Chicago, indicating the model struggles most with neighborhoods experiencing the most severe abandonment where counts are highest and most variable.
+
+# Conclusion
+
+**Model Performance:**
+
+-   The Negative Binomial model significantly outperformed Poisson (AIC: 16,847 vs 33,755), confirming severe overdispersion in the data where variance far exceeds the mean
+
+-   Cross-validation showed reasonable generalization with District 7 being the hardest to predict, indicating some districts have unique abandonment patterns
+
+-   The model slightly outperformed the KDE baseline (MAE: 13.50 vs 15.66), achieving about 14% improvement in prediction accuracy
+
+**Spatial Patterns:**
+
+-   Abandoned buildings show strong spatial clustering, with most of Chicago having relatively short distances to abandoned buildings
+
+-   Hot spots concentrated in west-central Chicago form the core abandonment cluster, with concentric rings showing spillover effects
+
+-   Local Moran's I identified statistically significant hot spots (High-High clusters) primarily in western neighborhoods
+
+**Model Limitations:**
+
+-   The model underpredicts in the most extreme abandonment areas (central west hotspot) and overpredicts in moderate zones
+
+-   Both the regression model and KDE struggle with the same high-intensity areas, suggesting extreme abandonment is driven by factors beyond spatial proximity
+
+-   If we could add additional features like economic indicators, foreclosure rates, housing age, or policy interventions could address current systematic biases
