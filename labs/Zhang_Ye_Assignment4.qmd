@@ -242,7 +242,7 @@ ggplot() +
   theme_buildings()
 ```
 
-The fishnet grid reveals clear spatial concentration of abandoned building reports. The highest counts (darker colors) cluster in south part of the city. Many cells have zero reports, while some hot spot cells have significantly elevated counts, indicating neighborhoods with persistent vacancy and abandonment issues.
+The fishnet grid reveals clear spatial concentration of abandoned building reports. The highest counts cluster in south part of the city. Many cells have zero reports, while some hot spot cells have significantly elevated counts, indicating neighborhoods with persistent vacancy and abandonment issues.
 
 # Part 3: Spatial Features
 
@@ -380,7 +380,7 @@ p2 <- ggplot() +
 p1 + p2
 ```
 
-The hot spot analysis identifies concentrated high-abandonment clusters (red areas) in south Chicago neighborhoods and some in the north central. Cold spots (blue) appear in areas with consistently low abandonment and there are very few of them. The spatial clustering is statistically significant, confirming that building abandonment is not randomly distributed but concentrates in neighborhoods that might experiencing disinvestment.
+The hot spot analysis identifies concentrated high-abandonment clusters in south Chicago neighborhoods and some in the north central. Cold spots appear to scatter around and there are very few of them. The spatial clustering is statistically significant, confirming that building abandonment is not randomly distributed but concentrates in neighborhoods that might experiencing disinvestment.
 
 ## Calculate Distance to Hot Spots
 
@@ -447,7 +447,7 @@ if(nrow(hotspots) > 0) {
 }
 ```
 
-The map shows clear concentric rings radiating outward from a central hot spot in west-central Chicago, where the lightest (near-zero distance) areas indicate the core abandonment cluster. The gradient pattern reveals that most of the northern half of the city is relatively close to this hot spot (orange tones), while the far north and some southern areas are more isolated from the main abandonment concentration (darker purple), suggesting these neighborhoods may be less affected by the spillover effects of concentrated building vacancy.
+The map shows clear concentric rings radiating outward from a central hot spot in Chicago, where the lightest (near-zero distance) areas indicate the core abandonment cluster. The gradient pattern reveals that most of the northern of the city is relatively close to this hot spot, while the far north and some southern areas are more isolated from the main abandonment concentration, suggesting these neighborhoods may be less affected by the spillover effects of concentrated building vacancy.
 
 # Part 4: Count Regression Models
 
@@ -883,7 +883,7 @@ The error maps show a fairly balanced mix of underprediction (red) and overpredi
 
 **Model Performance:**
 
--   The Negative Binomial model significantly outperformed Poisson (AIC: 16,847 vs 33,755), confirming severe overdispersion in the data where variance far exceeds the mean
+-   Our Negative Binomial model significantly outperformed Poisson (AIC: 16,847 vs 33,755), confirming severe overdispersion in the data where variance far exceeds the mean
 
 -   Cross-validation showed reasonable generalization with District 7 being the hardest to predict, indicating some districts have unique abandonment patterns
 
@@ -895,7 +895,7 @@ The error maps show a fairly balanced mix of underprediction (red) and overpredi
 
 -   Hot spots concentrated in west-central Chicago form the core abandonment cluster, with concentric rings showing spillover effects
 
--   Local Moran's I identified statistically significant hot spots (High-High clusters) primarily in western neighborhoods
+-   Local Moran's I identified statistically significant hot spots (High-High clusters) primarily in central south neighborhoods
 
 **Model Limitations:**
 
