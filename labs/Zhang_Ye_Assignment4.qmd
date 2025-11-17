@@ -101,14 +101,14 @@ cat("  - Police beats:", nrow(policeBeats), "\n")
 ```{r load-buildings}
 #| message: false
 
-# Load vacant and abandoned buildings data
+
 building_raw <- read_csv(here("data", "311_Service_Requests_-_Vacant_and_Abandoned_Buildings_Reported_-_Historical_20251116.csv"))
 
-# Check column names
+
 cat("Column names in dataset:\n")
 print(names(building_raw))
 
-# Convert to spatial object
+
 buildings <- building_raw %>%
   # Remove rows without coordinates
   filter(!is.na(`X COORDINATE`), !is.na(`Y COORDINATE`)) %>%
@@ -117,7 +117,7 @@ buildings <- building_raw %>%
   # Transform to the CRS used in the exercise (ESRI:102271)
   st_transform('ESRI:102271')
 
-# Check the data
+
 cat("\n✓ Loaded abandoned buildings data\n")
 cat("  - Number of building reports:", nrow(buildings), "\n")
 cat("  - CRS:", st_crs(buildings)$input, "\n")
@@ -131,7 +131,7 @@ Loading the 311 service requests for vacant and abandoned buildings and converti
 #| fig-width: 12
 #| fig-height: 5
 
-# Simple point map
+
 p1 <- ggplot() + 
   geom_sf(data = chicagoBoundary, fill = "gray95", color = "gray60") +
   geom_sf(data = buildings, color = "#d62828", size = 0.1, alpha = 0.4) +
@@ -140,7 +140,7 @@ p1 <- ggplot() +
     subtitle = paste0("Chicago, n = ", format(nrow(buildings), big.mark = ","))
   )
 
-# Density surface using modern syntax
+
 buildings_coords_plot <- as.data.frame(st_coordinates(buildings))
 names(buildings_coords_plot) <- c("X", "Y")
 
@@ -162,7 +162,7 @@ p2 <- ggplot() +
     subtitle = "Kernel density estimation"
   )
 
-# Combine plots using patchwork
+
 p1 + p2 + 
   plot_annotation(
     title = "Spatial Distribution of Vacant & Abandoned Buildings in Chicago",
@@ -177,16 +177,16 @@ Vacant and abandoned buildings are not evenly distributed across Chicago. The de
 ## Create the Grid
 
 ```{r create-fishnet}
-# Create a 500m x 500m grid over Chicago
+
 fishnet <- st_make_grid(
   chicagoBoundary,
-  cellsize = 500,  # Each cell is 500 meters on each side
+  cellsize = 500,  
   square = TRUE
 ) %>%
   st_sf() %>%
   mutate(uniqueID = row_number())
 
-# Keep only cells that actually overlap with Chicago
+
 fishnet <- fishnet[chicagoBoundary, ]
 
 cat("✓ Created fishnet grid\n")
@@ -199,18 +199,18 @@ Creating a grid of 500m x 500m squares that covers Chicago. This converts our po
 ## Aggregate Buildings to Grid Cells
 
 ```{r aggregate-buildings}
-# Count how many building reports fall in each grid cell
+
 buildings_fishnet <- st_join(buildings, fishnet, join = st_within) %>%
   st_drop_geometry() %>%
   group_by(uniqueID) %>%
   summarize(countBuildings = n())
 
-# Join counts back to the grid (cells with 0 get NA, so we replace with 0)
+
 fishnet <- fishnet %>%
   left_join(buildings_fishnet, by = "uniqueID") %>%
   mutate(countBuildings = replace_na(countBuildings, 0))
 
-# Summary statistics
+
 cat("\nBuilding count distribution:\n")
 summary(fishnet$countBuildings)
 cat("\nCells with zero buildings:", 
@@ -233,7 +233,7 @@ ggplot() +
   scale_fill_viridis_c(
     name = "Abandoned\nBuildings",
     option = "plasma",
-    trans = "sqrt"  # Square root transformation to see variation better
+    trans = "sqrt"  
   ) +
   labs(
     title = "Vacant & Abandoned Buildings by 500m Grid Cell",
@@ -249,20 +249,20 @@ The fishnet grid reveals clear spatial concentration of abandoned building repor
 ## Calculate k-Nearest Neighbors
 
 ```{r calculate-knn}
-# Get coordinates of building points
+
 buildings_coords <- st_coordinates(buildings)
 
-# Get coordinates of grid cell centroids
+
 fishnet_coords <- st_coordinates(st_centroid(fishnet))
 
-# For each grid cell, find average distance to 5 nearest buildings
+
 nn_distances <- get.knnx(
   data = buildings_coords,  
   query = fishnet_coords,   
   k = 5                    
 )
 
-# Add to fishnet
+
 fishnet <- fishnet %>%
   mutate(
     buildings.nn = rowMeans(nn_distances$nn.dist)
@@ -302,12 +302,12 @@ The k-NN map shows the consistent yellow coloring across most of the city sugges
 ## Calculate Local Moran's I
 
 ```{r local-morans-i}
-# Create spatial weights matrix (queen contiguity)
+
 coords <- st_centroid(fishnet) %>% st_coordinates()
 weight_matrix <- knn2nb(knearneigh(coords, k = 4))
 weights <- nb2listw(weight_matrix, style = "W", zero.policy = TRUE)
 
-# Calculate Local Moran's I
+
 fishnet <- fishnet %>%
   mutate(
     # Calculate local Moran's I statistic
@@ -316,7 +316,6 @@ fishnet <- fishnet %>%
     localMorans_pval = localmoran(countBuildings, weights, zero.policy = TRUE)[,5]
   )
 
-# Categorize into hot spots, cold spots, and not significant
 fishnet <- fishnet %>%
   mutate(
     cluster = case_when(
@@ -385,26 +384,26 @@ The hot spot analysis identifies concentrated high-abandonment clusters in south
 ## Calculate Distance to Hot Spots
 
 ```{r distance-to-hotspots}
-# Identify hot spot cells
+
 hotspots <- fishnet %>%
   filter(cluster == "High-High (Hot Spot)")
 
 cat("Number of hot spots identified:", nrow(hotspots), "\n")
 
-# Only calculate distances if we have hot spots
+
 if(nrow(hotspots) > 0) {
   # Get coordinates
   hotspot_coords <- st_coordinates(st_centroid(hotspots))
   fishnet_coords <- st_coordinates(st_centroid(fishnet))
   
-  # Calculate distance from each cell to nearest hot spot
+
   nn_to_hotspot <- get.knnx(
     data = hotspot_coords,
     query = fishnet_coords,
     k = 1
   )
   
-  # Add to fishnet
+
   fishnet <- fishnet %>%
     mutate(
       dist_to_hotspot = nn_to_hotspot$nn.dist[,1]
@@ -454,13 +453,12 @@ The map shows clear concentric rings radiating outward from a central hot spot i
 ## Prepare Modeling Data
 
 ```{r prepare-model-data}
-# Join spatial features with police district information
+
 fishnet_model <- fishnet %>%
   st_join(policeDistricts, join = st_intersects, left = TRUE) %>%
   st_drop_geometry() %>%
   filter(!is.na(District))  # Remove cells outside districts
 
-# Add scaled versions of predictors (helps with NB convergence)
 fishnet_model <- fishnet_model %>%
   mutate(
     buildings.nn_scaled = scale(buildings.nn)[,1],
@@ -477,17 +475,17 @@ Preparing our data for modeling by joining it with police districts (for cross-v
 ## Fit Poisson Regression
 
 ```{r poisson-model}
-# Fit Poisson model
+
 model_poisson <- glm(
   countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
   data = fishnet_model,
   family = poisson()
 )
 
-# Summary
+
 summary(model_poisson)
 
-# Get AIC - lower is better
+
 cat("\nPoisson Model AIC:", AIC(model_poisson), "\n")
 ```
 
@@ -496,17 +494,13 @@ Fitting a Poisson regression model that predicts building counts using distance 
 ## Fit Negative Binomial Regression
 
 ```{r negbin-model}
-# Negative Binomial can have convergence issues with extreme values
-# We'll try multiple strategies to fit the model
 
-# First, check the data distribution
 cat("Data diagnostics:\n")
 cat("Building count range:", min(fishnet_model$countBuildings), "to", max(fishnet_model$countBuildings), "\n")
 cat("Mean:", round(mean(fishnet_model$countBuildings), 2), "\n")
 cat("Variance:", round(var(fishnet_model$countBuildings), 2), "\n")
 cat("Variance/Mean ratio:", round(var(fishnet_model$countBuildings)/mean(fishnet_model$countBuildings), 2), "\n\n")
 
-# Try fitting with robust error handling
 model_nb <- tryCatch({
   cat("Trying NB model with scaled predictors...\n")
   glm.nb(
@@ -517,7 +511,6 @@ model_nb <- tryCatch({
 }, error = function(e1) {
   cat("Direct fit failed. Trying with Poisson starting values...\n")
   
-  # Fit Poisson with scaled predictors
   model_poisson_scaled <- glm(
     countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
     data = fishnet_model,
@@ -535,7 +528,6 @@ model_nb <- tryCatch({
   }, error = function(e2) {
     cat("Still failing. Trying with subset of data to estimate theta...\n")
     
-    # Remove extreme outliers to get initial estimates
     fishnet_subset <- fishnet_model %>%
       filter(countBuildings < quantile(countBuildings, 0.95))
     
@@ -544,7 +536,6 @@ model_nb <- tryCatch({
       data = fishnet_subset
     )
     
-    # Use subset estimates for full model
     glm.nb(
       countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
       data = fishnet_model,
@@ -555,7 +546,6 @@ model_nb <- tryCatch({
   })
 })
 
-# Summary
 summary(model_nb)
 
 # Compare AIC (lower is better)
@@ -573,24 +563,24 @@ The lower AIC tells us which model fits better. Negative Binomial has a better f
 ## Implement Leave-One-Group-Out CV
 
 ```{r spatial-cv}
-# Get list of districts
+
 districts <- unique(fishnet_model$District)
 
-# Storage for results
+
 cv_results <- tibble()
 
 cat("Running Leave-One-Group-Out Cross-Validation...\n")
 cat("(", length(districts), "folds - one per district)\n\n")
 
-# Loop through each district
+
 for(i in 1:length(districts)) {
   test_district <- districts[i]
   
-  # Split data
+
   train_data <- fishnet_model %>% filter(District != test_district)
   test_data <- fishnet_model %>% filter(District == test_district)
   
-  # Fit model on training data with robust error handling
+  
   model_cv <- tryCatch({
     glm.nb(
       countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
@@ -598,7 +588,7 @@ for(i in 1:length(districts)) {
       control = glm.control(maxit = 100)
     )
   }, error = function(e) {
-    # Fallback: use Poisson starting values
+
     model_poisson_cv <- glm(
       countBuildings ~ buildings.nn_scaled + dist_to_hotspot_scaled,
       data = train_data,
@@ -614,7 +604,7 @@ for(i in 1:length(districts)) {
         control = glm.control(maxit = 100)
       )
     }, error = function(e2) {
-      # Last resort: use subset approach
+  
       train_subset <- train_data %>%
         filter(countBuildings < quantile(countBuildings, 0.95))
       
@@ -633,17 +623,17 @@ for(i in 1:length(districts)) {
     })
   })
   
-  # Predict on test data
+
   test_data <- test_data %>%
     mutate(
       prediction = predict(model_cv, test_data, type = "response")
     )
   
-  # Calculate error metrics
+
   mae <- mean(abs(test_data$countBuildings - test_data$prediction))
   rmse <- sqrt(mean((test_data$countBuildings - test_data$prediction)^2))
   
-  # Store results
+
   cv_results <- bind_rows(
     cv_results,
     tibble(
@@ -659,7 +649,7 @@ for(i in 1:length(districts)) {
       "- MAE:", round(mae, 2), "\n")
 }
 
-# Overall results
+
 cat("\n✓ Cross-Validation Complete\n")
 cat("Mean MAE:", round(mean(cv_results$mae), 2), "\n")
 cat("Mean RMSE:", round(mean(cv_results$rmse), 2), "\n")
@@ -670,7 +660,7 @@ Testing our model by holding out one police district at a time, training on the 
 ## Cross-Validation Results
 
 ```{r cv-results-table}
-# Show results by district
+
 cv_results %>%
   arrange(desc(mae)) %>%
   kable(
@@ -688,7 +678,6 @@ Spatial cross-validation (LOGO CV) is more appropriate than random CV because of
 ## Generate Final Predictions
 
 ```{r final-predictions}
-# First, add scaled predictors to the full fishnet for predictions
 fishnet <- fishnet %>%
   mutate(
     buildings.nn_scaled = (buildings.nn - mean(fishnet_model$buildings.nn, na.rm = TRUE)) / 
@@ -697,7 +686,6 @@ fishnet <- fishnet %>%
                               sd(fishnet_model$dist_to_hotspot, na.rm = TRUE)
   )
 
-# Fit final model on all data with robust error handling
 final_model <- tryCatch({
   cat("Fitting final NB model...\n")
   glm.nb(
@@ -742,12 +730,10 @@ final_model <- tryCatch({
   })
 })
 
-# Create prediction data frame matching fishnet structure
 pred_data <- fishnet %>%
   st_drop_geometry() %>%
   dplyr::select(uniqueID, buildings.nn_scaled, dist_to_hotspot_scaled)
 
-# Add predictions to fishnet
 fishnet <- fishnet %>%
   mutate(
     prediction_nb = predict(final_model, pred_data, type = "response")
@@ -759,21 +745,20 @@ cat("✓ Final predictions generated\n")
 ## Compare to KDE Baseline
 
 ```{r kde-baseline}
-# Create KDE surface as baseline comparison
-# Convert to spatstat format
+
 buildings_ppp <- as.ppp(st_coordinates(buildings), W = as.owin(chicagoBoundary))
 
-# Calculate KDE
+
 kde_buildings <- density.ppp(buildings_ppp, sigma = 1000)
 
-# Convert back to raster and extract to fishnet
+
 kde_raster <- rast(kde_buildings)
 fishnet <- fishnet %>%
   mutate(
     kde_value = terra::extract(kde_raster, st_centroid(fishnet))[,2]
   )
 
-# Normalize KDE to same scale as counts
+
 kde_sum <- sum(fishnet$kde_value, na.rm = TRUE)
 count_sum <- sum(fishnet$countBuildings, na.rm = TRUE)
 fishnet <- fishnet %>%
@@ -847,14 +832,14 @@ The Negative Binomial model slightly beats the KDE baseline with a MAE of 13.50 
 #| fig-width: 10
 #| fig-height: 5
 
-# Calculate errors
+
 fishnet <- fishnet %>%
   mutate(
     error_nb = countBuildings - prediction_nb,
     abs_error_nb = abs(error_nb)
   )
 
-# Map signed errors (positive = underpredicted, negative = overpredicted)
+
 p1 <- ggplot() +
   geom_sf(data = fishnet, aes(fill = error_nb), color = NA) +
   scale_fill_gradient2(
@@ -867,7 +852,7 @@ p1 <- ggplot() +
        subtitle = "Red = underpredicted, Blue = overpredicted") +
   theme_buildings()
 
-# Map absolute errors
+
 p2 <- ggplot() +
   geom_sf(data = fishnet, aes(fill = abs_error_nb), color = NA) +
   scale_fill_viridis_c(name = "Abs. Error", option = "magma") +
