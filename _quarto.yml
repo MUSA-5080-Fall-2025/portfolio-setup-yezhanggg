@@ -15,8 +15,8 @@ project:
     - labs/Zhang_Ye_Assignment1.qmd
     - labs/Zhang_Ye_Assignment4.qmd
     - labs/Zhang_Ye_Appendix.qmd
-    - labs/Tim_Ye_Assignment5.qmd
     - labs/presentation/presentation.qmd
+    - labs/Tim_Ye_Assignment5.qmd
 
 website:
   title: "Ye Zhang - MUSA 5080 Portfolio"
