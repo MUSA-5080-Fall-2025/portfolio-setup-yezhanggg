@@ -15,6 +15,7 @@ project:
     - labs/Zhang_Ye_Assignment1.qmd
     - labs/Zhang_Ye_Assignment4.qmd
     - labs/Zhang_Ye_Appendix.qmd
+    - labs/Tim_Ye_Assignment5.qmd
     - labs/presentation/presentation.qmd
 
 website:
@@ -53,6 +54,9 @@ website:
             text: Midterm Presentation
           - href: labs/Zhang_Ye_Assignment4.qmd
             text: Assignment 4
+          - href: labs/Tim_Ye_Assignment5.qmd
+            text: Assignment 5
+            
 
 format:
   html:
