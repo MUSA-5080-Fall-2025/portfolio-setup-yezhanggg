@@ -11,6 +11,9 @@ project:
     - weekly-notes/week-06-notes.qmd
     - weekly-notes/week-07-notes.qmd
     - weekly-notes/week-09-notes.qmd
+    - weekly-notes/week-10-notes.qmd
+    - weekly-notes/week-11-notes.qmd
+    - weekly-notes/week-12-notes.qmd
     - labs/Zhang_Ye_Assignment2.qmd
     - labs/Zhang_Ye_Assignment1.qmd
     - labs/Zhang_Ye_Assignment4.qmd
@@ -42,6 +45,12 @@ website:
             text: Week 7
           - href: weekly-notes/week-09-notes.qmd
             text: Week 9
+          - href: weekly-notes/week-10-notes.qmd
+            text: Week 10
+          - href: weekly-notes/week-11-notes.qmd
+            text: Week 11
+          - href: weekly-notes/week-12-notes.qmd
+            text: Week 12
       - text: Assignment
         menu:
           - href: labs/Zhang_Ye_Assignment1.qmd
@@ -56,6 +65,10 @@ website:
             text: Assignment 4
           - href: labs/Tim_Ye_Assignment5.qmd
             text: Assignment 5
+          - href: labs/Final.qmd
+            text: Final Appendix
+          - href: labs/Finalpresentation.qmd
+            text: Final Presentation
             
 
 format:
