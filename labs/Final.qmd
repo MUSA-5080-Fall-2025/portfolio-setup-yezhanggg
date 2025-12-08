@@ -1,5 +1,6 @@
 ---
 title: "Technical Appendix"
+author: "Tim Wen & Ye Zhang"
 format: 
   html:
     toc: true
